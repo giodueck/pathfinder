@@ -66,3 +66,17 @@ int Player::GetTrackingWallCount()
 {
     return trackingWallCount;
 }
+
+void Player::ToggleWall(int i, int j)
+{
+    if (mazeGrid[i][j])
+    {
+        mazeGrid[i][j] = 0;
+        mazeWallCount--;
+    }
+    else if (mazeWallCount < maxWalls)
+    {
+        mazeGrid[i][j] = WALL;
+        mazeWallCount++;
+    }
+}

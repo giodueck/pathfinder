@@ -2,6 +2,10 @@
 #include "Player.h"
 #include "UnicodeCharacters.h"
 
+#include <string>
+
+using namespace std;
+
 /*
     Pathfinder (1974)
     6x6 board with borders around and between cells
@@ -64,20 +68,41 @@ public:
         }
     }
 
+    bool MouseOnBorder(int i, int j)
+    {
+        int mouseX = GetMouseX(), mouseY = GetMouseY();
+        return (
+            i % 2 == 0
+            && mouseX == mazeOffsetX + i * UIScale
+            && (mouseY >= mazeOffsetY + j * UIScale - UIScale / 2 && mouseY <= mazeOffsetY + j * UIScale + UIScale / 2)
+            ||
+            i % 2 == 1
+            && (mouseX >= mazeOffsetX + i * UIScale - UIScale / 2 && mouseX <= mazeOffsetX + i * UIScale + UIScale / 2)
+            && mouseY == mazeOffsetY + j * UIScale
+            );
+    }
+
+    void WriteLine(int x, int y, std::wstring text, short col = FG_WHITE)
+    {
+        for (unsigned c = 0; c < text.size(); c++)
+        {
+            Draw(x + c, y, text.c_str()[c], col);
+        }
+    }
+
     virtual bool OnUserCreate()
     {
         m_sAppName = L"Pathfinder";
 
         gameState = 0;
 
-        UIScale = 2;
-
         trackingOffsetX = 1;
-        trackingOffsetY = 2 * UIScale + 1;
+        trackingOffsetY = 2 * UIScale + 3;
         mazeOffsetX = 13 * UIScale + 5 - UIScale;
-        mazeOffsetY = 2 * UIScale + 1;
+        mazeOffsetY = 2 * UIScale + 3;
 
         // move to OnUserUpdate if adding a start or endscreen
+        WriteLine(mazeOffsetX - 6, 0, L"PATHFINDER");
         DrawBox(trackingOffsetX - 1, trackingOffsetY - 1, trackingOffsetX - 1 + 13 * UIScale + 2 - UIScale, trackingOffsetY - 1 + 13 * UIScale + 2 - UIScale);
         DrawBox(mazeOffsetX - 1, mazeOffsetY - 1, mazeOffsetX - 1 + 13 * UIScale + 2 - UIScale, mazeOffsetY - 1 + 13 * UIScale + 2 - UIScale);
 
@@ -108,20 +133,20 @@ public:
         Draw(x, y, (m_mouse[0].bReleased) ? PIXEL_SOLID : PIXEL_HALF);
         return true;*/
 
-        int mouseX = GetMouseX(), mouseY = GetMouseY();
         if (m_keys[' '].bPressed) gameState = !gameState;
 
         // Setup
-        if (gameState == 0)
+        if (gameState == 0 && m_mouse[0].bPressed)
         {
-            if (player1.GetMazeWallCount() < 30)
+            // check if clicked on a valid wall spot
+            for (int i = 0; i < 13; i++)
             {
-                if (m_mouse[0].bReleased)
+                for (int j = 0; j < 13; j++)
                 {
-                    
-
-                    // check if clicked on a valid wall spot
-
+                    if (i % 2 != j % 2 && MouseOnBorder(i, j))
+                    {
+                        player1.ToggleWall(i, j);
+                    }
                 }
             }
         }
@@ -133,6 +158,12 @@ public:
         }
 
         // Drawing
+        if (gameState == 0)
+        {
+            WriteLine(mazeOffsetX, 1, L"SET UP A MAZE IN THIS GRID");
+            WriteLine(mazeOffsetX, 2, L"WALLS: " + to_wstring(player1.maxWalls - player1.GetMazeWallCount()) + L" ");
+        }
+
         int piece;
         for (int i = 0; i < 13; i++)
         {
@@ -157,20 +188,19 @@ public:
                         }
                     }
                     else if (i % 2 != j % 2 && piece == Pieces::WALL)
-                        DrawWall(i, j, mazeOffsetX, mazeOffsetY);
+                    {
+                        // Checks if the mouse is hovering over the wall
+                        if (gameState == 0 && MouseOnBorder(i, j))
+                            DrawWall(i, j, mazeOffsetX, mazeOffsetY, 0, FG_RED);
+                        else
+                            DrawWall(i, j, mazeOffsetX, mazeOffsetY);
+                    }
                 }
                 // Setup phase border highlighting for wall placement
                 else if (i % 2 != j % 2)
                 {
-                    if (gameState == 0 && (
-                        i % 2 == 0
-                        && mouseX == mazeOffsetX + i * UIScale
-                        && (mouseY >= mazeOffsetY + j * UIScale - UIScale / 2 && mouseY <= mazeOffsetY + j * UIScale + UIScale / 2)
-                        ||
-                        i % 2 == 1
-                        && (mouseX >= mazeOffsetX + i * UIScale - UIScale / 2 && mouseX <= mazeOffsetX + i * UIScale + UIScale / 2)
-                        && mouseY == mazeOffsetY + j * UIScale
-                        ))
+                    // Checks if the mouse is hovering over the border
+                    if (gameState == 0 && MouseOnBorder(i, j) && player1.GetMazeWallCount() < player1.maxWalls)
                         DrawWall(i, j, mazeOffsetX, mazeOffsetY, PIXEL_QUARTER);
                     else
                         DrawWall(i, j, mazeOffsetX, mazeOffsetY, PIXEL_SOLID, FG_BLACK);
@@ -207,7 +237,7 @@ private:
     Player player1, player2;
     int gameState;
 
-    int UIScale;
+    const int UIScale = 2;
     int trackingOffsetX, trackingOffsetY;
     int mazeOffsetX, mazeOffsetY;
 };

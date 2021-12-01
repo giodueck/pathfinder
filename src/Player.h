@@ -32,6 +32,8 @@ public:
 
     int GetTrackingWallCount();
 
+    void ToggleWall(int i, int j);
+
 protected:
     int mazeGrid[13][13];
     int trackingGrid[13][13];
