@@ -40,16 +40,16 @@ using namespace std;
 class Pathfinder : public olcConsoleGameEngine
 {
 public:
-    void DrawBox(int x1, int y1, int x2, int y2)
+    void DrawBox(int x1, int y1, int x2, int y2, short col = FG_WHITE)
     {
-        DrawLine(x1 + 1, y1, x2 - 1, y1, HORIZONTAL_L);
-        DrawLine(x1 + 1, y2, x2 - 1, y2, HORIZONTAL_L);
-        DrawLine(x1, y1 + 1, x1, y2 - 1, VERTICAL_L);
-        DrawLine(x2, y1 + 1, x2, y2 - 1, VERTICAL_L);
-        Draw(x1, y1, CORNER_L_DOWN_RIGHT);
-        Draw(x1, y2, CORNER_L_UP_RIGHT);
-        Draw(x2, y1, CORNER_L_DOWN_LEFT);
-        Draw(x2, y2, CORNER_L_UP_LEFT);
+        DrawLine(x1 + 1, y1, x2 - 1, y1, HORIZONTAL_L, col);
+        DrawLine(x1 + 1, y2, x2 - 1, y2, HORIZONTAL_L, col);
+        DrawLine(x1, y1 + 1, x1, y2 - 1, VERTICAL_L, col);
+        DrawLine(x2, y1 + 1, x2, y2 - 1, VERTICAL_L, col);
+        Draw(x1, y1, CORNER_L_DOWN_RIGHT, col);
+        Draw(x1, y2, CORNER_L_UP_RIGHT, col);
+        Draw(x2, y1, CORNER_L_DOWN_LEFT, col);
+        Draw(x2, y2, CORNER_L_UP_LEFT, col);
     }
 
     void DrawWall(int i, int j, int offsetX, int offsetY, short c = 0, short col = FG_DARK_YELLOW)
@@ -82,6 +82,21 @@ public:
             );
     }
 
+    bool MouseOnSquare(int i, int j, int offsetX, int offsetY)
+    {
+        int mouseX = GetMouseX(), mouseY = GetMouseY();
+        //return (mouseX == offsetX + i * UIScale && mouseY == offsetY + j * UIScale);
+        return (
+            mouseX >= offsetX + i * UIScale - UIScale / 2 && mouseX <= offsetX + i * UIScale + UIScale / 2 &&
+            mouseY >= offsetY + j * UIScale - UIScale / 2 && mouseY <= offsetY + j * UIScale + UIScale / 2);
+    }
+
+    bool MouseInBox(int x1, int y1, int x2, int y2)
+    {
+        int mouseX = GetMouseX(), mouseY = GetMouseY();
+        return (mouseX >= x1 && mouseX <= x2 && mouseY >= y1 && mouseY <= y2);
+    }
+
     void WriteLine(int x, int y, std::wstring text, short col = FG_WHITE)
     {
         for (unsigned c = 0; c < text.size(); c++)
@@ -96,9 +111,9 @@ public:
 
         gameState = 0;
 
-        trackingOffsetX = 1;
+        trackingOffsetX = 2;
         trackingOffsetY = 2 * UIScale + 3;
-        mazeOffsetX = 13 * UIScale + 5 - UIScale;
+        mazeOffsetX = 13 * UIScale + 6 - UIScale;
         mazeOffsetY = 2 * UIScale + 3;
 
         // move to OnUserUpdate if adding a start or endscreen
@@ -107,63 +122,87 @@ public:
         DrawBox(mazeOffsetX - 1, mazeOffsetY - 1, mazeOffsetX - 1 + 13 * UIScale + 2 - UIScale, mazeOffsetY - 1 + 13 * UIScale + 2 - UIScale);
 
         // For debugging/testing
-        for (int i = 0; i < 13; i++)
-        {
-            for (int j = 0; j < 13; j++)
-            {
-                if (i % 2 != j % 2 && (i % 3 == 1 || j % 4 == 3))
-                    player1.SetMazeWall(i, j);
-            }
-        }
+        //for (int i = 0; i < 13; i++)
+        //{
+        //    for (int j = 0; j < 13; j++)
+        //    {
+        //        if (i % 2 != j % 2 && (i % 3 == 1 || j % 4 == 3))
+        //            player1.SetMazeWall(i, j);
+        //    }
+        //}
         player1.SetTrackingWall(0, 1);
         player1.SetTrackingWall(1, 0);
         player1.SetTrackingWall(11, 12);
         player1.SetTrackingWall(12, 11);
-        player1.SetObjective(11, 11);
-        player1.SetPawn(3, 1);
-        player1.SetVisited(1, 1);
+        //player1.SetObjective(11, 11);
+        //player1.SetPawn(3, 1);
+        //player1.SetVisited(1, 1);
 
         return true;
     }
 
     virtual bool OnUserUpdate(float fElapsedTime)
     {
-        // testing mouse coordinates
-        /*int x = GetMouseX(), y = GetMouseY();
-        Draw(x, y, (m_mouse[0].bReleased) ? PIXEL_SOLID : PIXEL_HALF);
-        return true;*/
-
-        if (m_keys[' '].bPressed) gameState = !gameState;
-
-        // Setup
+        // INPUT
+            // Setup
         if (gameState == 0 && m_mouse[0].bPressed)
         {
-            // check if clicked on a valid wall spot
-            for (int i = 0; i < 13; i++)
+            // check if clicked on the "start!" button
+            if (player1.GetMazeWallCount() == player1.maxWalls &&
+                MouseInBox(trackingOffsetX, 2, trackingOffsetX + 7, 4))
             {
-                for (int j = 0; j < 13; j++)
+                // TODO: Verify the maze is solvable
+                gameState = 1;
+            }
+            else
+            {
+                // check if clicked on a valid wall or objective spot
+                for (int i = 0; i < 13; i++)
                 {
-                    if (i % 2 != j % 2 && MouseOnBorder(i, j))
+                    for (int j = 0; j < 13; j++)
                     {
-                        player1.ToggleWall(i, j);
+                        if (i % 2 != j % 2 && MouseOnBorder(i, j))
+                        {
+                            player1.ToggleWall(i, j);
+                        }
+                        else if (i % 2 && j % 2 && MouseOnSquare(i, j, mazeOffsetX, mazeOffsetY))
+                        {
+                            player1.ToggleObjective(i, j);
+                        }
                     }
                 }
             }
         }
 
-        // Gameplay
+        // LOGIC
+            // Gameplay
         else if (gameState == 1)
         {
             // game
         }
 
-        // Drawing
+        // DRAWING
+
+            // Text
         if (gameState == 0)
         {
-            WriteLine(mazeOffsetX, 1, L"SET UP A MAZE IN THIS GRID");
-            WriteLine(mazeOffsetX, 2, L"WALLS: " + to_wstring(player1.maxWalls - player1.GetMazeWallCount()) + L" ");
+            WriteLine(mazeOffsetX, 2, L"SET UP A MAZE IN THIS GRID");
+            WriteLine(mazeOffsetX, 3, L"WALLS: " + to_wstring(player1.maxWalls - player1.GetMazeWallCount())
+                + L" ");
         }
 
+            // Buttons
+        if (gameState == 0 && player1.GetMazeWallCount() == player1.maxWalls)
+        {
+            DrawBox(trackingOffsetX, 2, trackingOffsetX + 7, 4, FG_BLUE);
+            WriteLine(trackingOffsetX + 1, 3, L"START!");
+        } else
+        {
+            DrawBox(trackingOffsetX, 2, trackingOffsetX + 7, 4, FG_BLACK);
+            WriteLine(trackingOffsetX + 1, 3, L"      ");
+        }
+
+            // Boards
         int piece;
         for (int i = 0; i < 13; i++)
         {
@@ -203,7 +242,15 @@ public:
                     if (gameState == 0 && MouseOnBorder(i, j) && player1.GetMazeWallCount() < player1.maxWalls)
                         DrawWall(i, j, mazeOffsetX, mazeOffsetY, PIXEL_QUARTER);
                     else
-                        DrawWall(i, j, mazeOffsetX, mazeOffsetY, PIXEL_SOLID, FG_BLACK);
+                        DrawWall(i, j, mazeOffsetX, mazeOffsetY, ' ');
+                }
+                // Setup square highlighting for objective placement
+                else if (i % 2 && j % 2)
+                {
+                    if (gameState == 0 && MouseOnSquare(i, j, mazeOffsetX, mazeOffsetY))
+                        Draw(mazeOffsetX + i * UIScale, mazeOffsetY + j * UIScale, PIXEL_QUARTER, FG_GREEN);
+                    else
+                        Draw(mazeOffsetX + i * UIScale, mazeOffsetY + j * UIScale, ' ');
                 }
 
                 // Tracking Grid
@@ -245,7 +292,7 @@ private:
 int main()
 {
     Pathfinder game;
-    game.ConstructConsole(60, 40, 12, 12);
+    game.ConstructConsole(57, 40, 12, 12);
     game.Start();
 
     return 0;

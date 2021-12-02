@@ -34,7 +34,31 @@ void Player::SetTrackingWall(int i, int j)
 
 void Player::SetObjective(int i, int j)
 {
+    UnsetObjective();
     mazeGrid[i][j] = OBJECTIVE;
+}
+
+void Player::UnsetObjective()
+{
+    for (int i_ = 0; i_ < 13; i_++)
+    {
+        for (int j_ = 0; j_ < 13; j_++)
+        {
+            if (mazeGrid[i_][j_] == OBJECTIVE)
+            {
+                mazeGrid[i_][j_] = 0;
+                break;
+            }
+        }
+    }
+}
+
+void Player::ToggleObjective(int i, int j)
+{
+    if (mazeGrid[i][j] == OBJECTIVE)
+        mazeGrid[i][j] = 0;
+    else
+        SetObjective(i, j);
 }
 
 void Player::SetPawn(int i, int j)
