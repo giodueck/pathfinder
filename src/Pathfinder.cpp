@@ -130,19 +130,53 @@ public:
         //            player1.SetMazeWall(i, j);
         //    }
         //}
-        player1.SetTrackingWall(0, 1);
-        player1.SetTrackingWall(1, 0);
-        player1.SetTrackingWall(11, 12);
-        player1.SetTrackingWall(12, 11);
+        //player1.SetTrackingWall(0, 1);
+        //player1.SetTrackingWall(1, 0);
+        //player1.SetTrackingWall(11, 12);
+        //player1.SetTrackingWall(12, 11);
         //player1.SetObjective(11, 11);
         //player1.SetPawn(3, 1);
         //player1.SetVisited(1, 1);
+        player2.SetMazeWall(2, 1);
+        player2.SetMazeWall(2, 3);
+        player2.SetMazeWall(2, 7);
+        player2.SetMazeWall(2, 9);
+        player2.SetMazeWall(3, 0);
+        player2.SetMazeWall(3, 2);
+        player2.SetMazeWall(3, 8);
+        player2.SetMazeWall(3, 10);
+        player2.SetMazeWall(4, 5);
+        player2.SetMazeWall(5, 2);
+        player2.SetMazeWall(5, 4);
+        player2.SetMazeWall(5, 8);
+        player2.SetMazeWall(5, 10);
+        player2.SetMazeWall(6, 1);
+        player2.SetMazeWall(6, 7);
+        player2.SetMazeWall(7, 0);
+        player2.SetMazeWall(7, 4);
+        player2.SetMazeWall(7, 6);
+        player2.SetMazeWall(7, 10);
+        player2.SetMazeWall(8, 5);
+        player2.SetMazeWall(8, 9);
+        player2.SetMazeWall(8, 11);
+        player2.SetMazeWall(9, 2);
+        player2.SetMazeWall(9, 8);
+        player2.SetMazeWall(10, 1);
+        player2.SetMazeWall(10, 3);
+        player2.SetMazeWall(10, 7);
+        player2.SetMazeWall(11, 2);
+        player2.SetMazeWall(11, 4);
+        player2.SetMazeWall(11, 10);
+        player2.SetObjective(3, 9);
 
         return true;
     }
 
     virtual bool OnUserUpdate(float fElapsedTime)
     {
+        static int enterLocation = 1;
+        static bool startPressed = false;
+
         // INPUT
             // Setup
         if (gameState == 0 && m_mouse[0].bPressed)
@@ -152,7 +186,7 @@ public:
                 MouseInBox(trackingOffsetX, 2, trackingOffsetX + 7, 4))
             {
                 // TODO: Verify the maze is solvable
-                gameState = 1;
+                startPressed = true;
             }
             else
             {
@@ -178,7 +212,10 @@ public:
             // Gameplay
         else if (gameState == 1)
         {
-            // game
+            if (!player1.PawnOnBoard())
+            {
+
+            }
         }
 
         // DRAWING
@@ -189,14 +226,34 @@ public:
             WriteLine(mazeOffsetX, 2, L"SET UP A MAZE IN THIS GRID");
             WriteLine(mazeOffsetX, 3, L"WALLS: " + to_wstring(player1.maxWalls - player1.GetMazeWallCount())
                 + L" ");
+            if (startPressed)
+            {
+                WriteLine(mazeOffsetX, 2, L"                          ");
+                WriteLine(mazeOffsetX, 3, L"         ");
+            }
+        }
+        else if (gameState == 1)
+        {
+
+            if (!player1.PawnOnBoard())
+            {
+                WriteLine(trackingOffsetX, 2, L"ENTER THE BOARD FROM THE LEFT");
+                WriteLine(trackingOffsetX, 3, L"USE W AND S TO SELECT A SQUARE");
+            }
+            else
+            {
+                WriteLine(trackingOffsetX, 2, L"LOOK FOR THE MAZE EXIT       ");
+                WriteLine(trackingOffsetX, 3, L"USE WASD TO SELECT A DIRECTION");
+            }
+            //DrawBox(trackingOffsetX, 2, trackingOffsetX + 7, 4, FG_BLACK);
         }
 
             // Buttons
-        if (gameState == 0 && player1.GetMazeWallCount() == player1.maxWalls)
+        if (gameState == 0 && player1.GetMazeWallCount() == player1.maxWalls && !startPressed)
         {
             DrawBox(trackingOffsetX, 2, trackingOffsetX + 7, 4, FG_BLUE);
             WriteLine(trackingOffsetX + 1, 3, L"START!");
-        } else
+        } else if (gameState == 0)
         {
             DrawBox(trackingOffsetX, 2, trackingOffsetX + 7, 4, FG_BLACK);
             WriteLine(trackingOffsetX + 1, 3, L"      ");
@@ -275,6 +332,21 @@ public:
                         DrawWall(i, j, trackingOffsetX, trackingOffsetY);
                 }
             }
+
+            // Enter board indicator
+            if (gameState == 1 && i == enterLocation && !player1.PawnOnBoard())
+            {
+                Draw(trackingOffsetX - 2, trackingOffsetY + i * UIScale, '>');
+            }
+            else
+                Draw(trackingOffsetX - 2, trackingOffsetY + i * UIScale, ' ');
+        }
+
+        // STATE UPDATES
+        if (startPressed)
+        {
+            startPressed = false;
+            gameState = 1;
         }
 
         return true;
