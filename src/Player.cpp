@@ -105,11 +105,11 @@ void Player::ToggleWall(int i, int j)
     }
 }
 
-bool Player::EnterOpponent(int i)
+bool Player::EnterOpponent(int j)
 {
-    if (i % 2)
+    if (j % 2)
     {
-        if (mazeGrid[i][0] != WALL)
+        if (mazeGrid[0][j] != WALL)
         {
             opponentOnBoard = true;
             return true;
@@ -121,22 +121,22 @@ bool Player::EnterOpponent(int i)
         throw "Invalid row, has to be uneven";
 }
 
-bool Player::Enter(Player opponent, int i)
+bool Player::Enter(Player opponent, int j)
 {
-    if (i % 2)
+    if (j % 2)
     {
-        if (trackingGrid[i][0] != WALL)
+        if (trackingGrid[0][j] != WALL)
         {
-            if (opponent.EnterOpponent(i))
+            if (opponent.EnterOpponent(j))
             {
-                trackingGrid[i][0] = BLANK;
-                trackingGrid[i][1] = PAWN;
+                trackingGrid[0][j] = BLANK;
+                trackingGrid[1][j] = PAWN;
                 onBoard = true;
                 return true;
             }
             else
             {
-                trackingGrid[i][0] = WALL;
+                trackingGrid[0][j] = WALL;
                 return false;
             }
         }

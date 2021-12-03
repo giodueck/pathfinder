@@ -169,6 +169,38 @@ public:
         player2.SetMazeWall(11, 10);
         player2.SetObjective(3, 9);
 
+        player1.SetMazeWall(2, 1);
+        player1.SetMazeWall(2, 3);
+        player1.SetMazeWall(2, 7);
+        player1.SetMazeWall(2, 9);
+        player1.SetMazeWall(3, 0);
+        player1.SetMazeWall(3, 2);
+        player1.SetMazeWall(3, 8);
+        player1.SetMazeWall(3, 10);
+        player1.SetMazeWall(4, 5);
+        player1.SetMazeWall(5, 2);
+        player1.SetMazeWall(5, 4);
+        player1.SetMazeWall(5, 8);
+        player1.SetMazeWall(5, 10);
+        player1.SetMazeWall(6, 1);
+        player1.SetMazeWall(6, 7);
+        player1.SetMazeWall(7, 0);
+        player1.SetMazeWall(7, 4);
+        player1.SetMazeWall(7, 6);
+        player1.SetMazeWall(7, 10);
+        player1.SetMazeWall(8, 5);
+        player1.SetMazeWall(8, 9);
+        player1.SetMazeWall(8, 11);
+        player1.SetMazeWall(9, 2);
+        player1.SetMazeWall(9, 8);
+        player1.SetMazeWall(10, 1);
+        player1.SetMazeWall(10, 3);
+        player1.SetMazeWall(10, 7);
+        player1.SetMazeWall(11, 2);
+        player1.SetMazeWall(11, 4);
+        player1.SetMazeWall(11, 10);
+        player1.SetObjective(3, 9);
+
         return true;
     }
 
@@ -176,6 +208,8 @@ public:
     {
         static int enterLocation = 1;
         static bool startPressed = false;
+        static int direction = -1;
+        static bool confirm = false;
 
         // INPUT
             // Setup
@@ -207,14 +241,43 @@ public:
                 }
             }
         }
+        else if (gameState == 1)
+        {
+            // Direction
+            if (!player1.PawnOnBoard())
+            {
+                if ((m_keys['w'].bPressed || m_keys['W'].bPressed) && enterLocation > 1)
+                    enterLocation -= 2;
+                if ((m_keys['s'].bPressed || m_keys['S'].bPressed) && enterLocation < 11)
+                    enterLocation += 2;
+            }
+            else
+            {
+                if (m_keys['w'].bPressed || m_keys['W'].bPressed)
+                    direction = UP;
+                if (m_keys['s'].bPressed || m_keys['S'].bPressed)
+                    direction = DOWN;
+                if (m_keys['a'].bPressed || m_keys['A'].bPressed)
+                    direction = LEFT;
+                if (m_keys['d'].bPressed || m_keys['D'].bPressed)
+                    direction = RIGHT;
+            }
+
+            // Confirm
+            if (m_keys[' '].bPressed || m_keys['\r'].bPressed || m_mouse[0].bPressed)
+                confirm = true;
+            else
+                confirm = false;
+        }
 
         // LOGIC
             // Gameplay
-        else if (gameState == 1)
+        if (gameState == 1)
         {
-            if (!player1.PawnOnBoard())
+            // Enter board
+            if (!player1.PawnOnBoard() && confirm)
             {
-
+                player1.Enter(player2, enterLocation);
             }
         }
 
@@ -266,20 +329,20 @@ public:
             for (int j = 0; j < 13; j++)
             {
                 // Maze Grid
-                if (piece = player1.GetMazeCell(i, j))
+                if (piece = player1.GetMazeCell(j, i))
                 {
                     if (i % 2 != 0 && j % 2 != 0)
                     {
                         switch (piece)
                         {
                         case OBJECTIVE:
-                            Draw(mazeOffsetX + i * UIScale, mazeOffsetY + j * UIScale, 'O', FG_GREEN);
+                            Draw(mazeOffsetX + j * UIScale, mazeOffsetY + i * UIScale, 'O', FG_GREEN);
                             break;
                         case PAWN:
-                            Draw(mazeOffsetX + i * UIScale, mazeOffsetY + j * UIScale, 'O', FG_YELLOW);
+                            Draw(mazeOffsetX + j * UIScale, mazeOffsetY + i * UIScale, 'O', FG_YELLOW);
                             break;
                         case VISITED:
-                            Draw(mazeOffsetX + i * UIScale, mazeOffsetY + j * UIScale, 'O', FG_RED);
+                            Draw(mazeOffsetX + j * UIScale, mazeOffsetY + i * UIScale, 'O', FG_RED);
                             break;
                         }
                     }
@@ -287,54 +350,55 @@ public:
                     {
                         // Checks if the mouse is hovering over the wall
                         if (gameState == 0 && MouseOnBorder(i, j))
-                            DrawWall(i, j, mazeOffsetX, mazeOffsetY, 0, FG_RED);
+                            DrawWall(j, i, mazeOffsetX, mazeOffsetY, 0, FG_RED);
                         else
-                            DrawWall(i, j, mazeOffsetX, mazeOffsetY);
+                            DrawWall(j, i, mazeOffsetX, mazeOffsetY);
                     }
                 }
                 // Setup phase border highlighting for wall placement
                 else if (i % 2 != j % 2)
                 {
                     // Checks if the mouse is hovering over the border
-                    if (gameState == 0 && MouseOnBorder(i, j) && player1.GetMazeWallCount() < player1.maxWalls)
-                        DrawWall(i, j, mazeOffsetX, mazeOffsetY, PIXEL_QUARTER);
+                    if (gameState == 0 && MouseOnBorder(j, i) && player1.GetMazeWallCount() < player1.maxWalls)
+                        DrawWall(j, i, mazeOffsetX, mazeOffsetY, PIXEL_QUARTER);
                     else
-                        DrawWall(i, j, mazeOffsetX, mazeOffsetY, ' ');
+                        DrawWall(j, i, mazeOffsetX, mazeOffsetY, ' ');
                 }
                 // Setup square highlighting for objective placement
                 else if (i % 2 && j % 2)
                 {
-                    if (gameState == 0 && MouseOnSquare(i, j, mazeOffsetX, mazeOffsetY))
-                        Draw(mazeOffsetX + i * UIScale, mazeOffsetY + j * UIScale, PIXEL_QUARTER, FG_GREEN);
+                    if (gameState == 0 && MouseOnSquare(j, i, mazeOffsetX, mazeOffsetY))
+                        Draw(mazeOffsetX + j * UIScale, mazeOffsetY + i * UIScale, PIXEL_QUARTER, FG_GREEN);
                     else
-                        Draw(mazeOffsetX + i * UIScale, mazeOffsetY + j * UIScale, ' ');
+                        Draw(mazeOffsetX + j * UIScale, mazeOffsetY + i * UIScale, ' ');
                 }
 
                 // Tracking Grid
-                if (piece = player1.GetTrackingCell(i, j))
+                if (piece = player1.GetTrackingCell(j, i) > 0)
                 {
                     if (i % 2 != 0 && j % 2 != 0)
                     {
                         switch (piece)
                         {
                         case OBJECTIVE:
-                            Draw(trackingOffsetX + i * UIScale, trackingOffsetY + j * UIScale, 'O', FG_GREEN);
+                            Draw(trackingOffsetX + j * UIScale, trackingOffsetY + i * UIScale, 'O', FG_GREEN);
                             break;
                         case PAWN:
-                            Draw(trackingOffsetX + i * UIScale, trackingOffsetY + j * UIScale, 'O', FG_YELLOW);
+                            Draw(trackingOffsetX + j * UIScale, trackingOffsetY + i * UIScale, 'O', FG_YELLOW);
                             break;
                         case VISITED:
-                            Draw(trackingOffsetX + i * UIScale, trackingOffsetY + j * UIScale, 'O', FG_RED);
+                            Draw(trackingOffsetX + j * UIScale, trackingOffsetY + i * UIScale, 'O', FG_RED);
                             break;
                         }
                     }
                     else if (i % 2 != j % 2 && piece == Pieces::WALL)
-                        DrawWall(i, j, trackingOffsetX, trackingOffsetY);
+                        DrawWall(j, i, trackingOffsetX, trackingOffsetY);
                 }
             }
 
             // Enter board indicator
             if (gameState == 1 && i == enterLocation && !player1.PawnOnBoard())
+                // the i is misleading, enterLocation is on the Y axis
             {
                 Draw(trackingOffsetX - 2, trackingOffsetY + i * UIScale, '>');
             }
