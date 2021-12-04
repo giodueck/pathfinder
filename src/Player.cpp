@@ -38,6 +38,11 @@ void Player::SetObjective(int i, int j)
     mazeGrid[i][j] = OBJECTIVE;
 }
 
+//void Player::SetTrackingObjective(int i, int j)
+//{
+//    trackingGrid[i][j] = OBJECTIVE;
+//}
+
 void Player::UnsetObjective()
 {
     for (int i_ = 0; i_ < 13; i_++)
@@ -118,7 +123,7 @@ bool Player::EnterOpponent(int j)
             return false;
     }
     else
-        throw "Invalid row, has to be uneven";
+        throw std::exception("Invalid row, has to be uneven");
 }
 
 bool Player::Enter(Player opponent, int j)
@@ -146,7 +151,7 @@ bool Player::Enter(Player opponent, int j)
         }
     }
     else
-        throw "Invalid row, has to be uneven";
+        throw std::exception("Invalid row, has to be uneven");
 }
 
 void Player::GetOpponentPawn(int& i_, int& j_)
@@ -238,11 +243,11 @@ bool Player::MoveOpponent(int direction)
             break;
 
         default:
-            throw "Invalid direction";
+            throw std::exception("Invalid direction");
         }
     }
     else
-        throw "Invalid action, pawn not on board";
+        throw std::exception("Invalid action, pawn not on board");
 }
 
 bool Player::Move(Player opponent, int direction)
@@ -320,11 +325,11 @@ bool Player::Move(Player opponent, int direction)
             break;
 
         default:
-            throw "Invalid direction";
+            throw std::exception("Invalid direction");
         }
     }
     else
-        throw "Invalid action, pawn not on board";
+        throw std::exception("Invalid action, pawn not on board");
 }
 
 void Player::RetreatOpponent()

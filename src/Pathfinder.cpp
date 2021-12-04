@@ -97,11 +97,11 @@ public:
         return (mouseX >= x1 && mouseX <= x2 && mouseY >= y1 && mouseY <= y2);
     }
 
-    void WriteLine(int x, int y, std::wstring text, short col = FG_WHITE)
+    void DrawCString(int x, int y, const char* c, short col = 0x000F)
     {
-        for (unsigned c = 0; c < text.size(); c++)
+        for (size_t i = 0; c[i] != '\0'; i++)
         {
-            Draw(x + c, y, text.c_str()[c], col);
+            Draw(x + i, y, c[i], col);
         }
     }
 
@@ -117,7 +117,7 @@ public:
         mazeOffsetY = 2 * UIScale + 3;
 
         // move to OnUserUpdate if adding a start or endscreen
-        WriteLine(mazeOffsetX - 6, 0, L"PATHFINDER");
+        DrawString(mazeOffsetX - 6, 0, L"PATHFINDER");
         DrawBox(trackingOffsetX - 1, trackingOffsetY - 1, trackingOffsetX - 1 + 13 * UIScale + 2 - UIScale, trackingOffsetY - 1 + 13 * UIScale + 2 - UIScale);
         DrawBox(mazeOffsetX - 1, mazeOffsetY - 1, mazeOffsetX - 1 + 13 * UIScale + 2 - UIScale, mazeOffsetY - 1 + 13 * UIScale + 2 - UIScale);
 
@@ -201,6 +201,8 @@ public:
         player1.SetMazeWall(11, 10);
         player1.SetObjective(3, 9);
 
+        //player1.SetTrackingObjective(5, 5);
+
         return true;
     }
 
@@ -210,6 +212,8 @@ public:
         static bool startPressed = false;
         static int direction = -1;
         static bool confirm = false;
+        static int turn = 0;
+        static bool turnOver = false;
 
         // INPUT
             // Setup
@@ -264,21 +268,48 @@ public:
             }
 
             // Confirm
-            if (m_keys[' '].bPressed || m_keys['\r'].bPressed || m_mouse[0].bPressed)
+            if (m_keys[' '].bPressed || m_keys['\r'].bPressed /*|| m_mouse[0].bPressed*/)
                 confirm = true;
             else
                 confirm = false;
         }
 
         // LOGIC
-            // Gameplay
-        if (gameState == 1)
+            // Player 1's turn
+        if (gameState == 1 && turn == 0)
         {
             // Enter board
             if (!player1.PawnOnBoard() && confirm)
             {
                 player1.Enter(player2, enterLocation);
             }
+            // Move
+            else if (confirm)
+            {
+                // Move, if not blocked turn continues
+                try
+                {
+                    if (!player1.Move(player2, direction))
+                    {
+                        turnOver = true;
+                    }
+                }
+                catch (exception e)
+                {
+                    DrawCString(trackingOffsetX, trackingOffsetY + UIScale * 13, e.what(), FG_RED);
+                }
+                catch (...)
+                {
+                    exit(143);
+                }
+            }
+
+        }
+            // Player 2's turn (AI)
+        else if (gameState == 1 && turn == 1)
+        {
+            // Skip turn
+            turnOver = true;
         }
 
         // DRAWING
@@ -286,13 +317,13 @@ public:
             // Text
         if (gameState == 0)
         {
-            WriteLine(mazeOffsetX, 2, L"SET UP A MAZE IN THIS GRID");
-            WriteLine(mazeOffsetX, 3, L"WALLS: " + to_wstring(player1.maxWalls - player1.GetMazeWallCount())
+            DrawString(mazeOffsetX, 2, L"SET UP A MAZE IN THIS GRID");
+            DrawString(mazeOffsetX, 3, L"WALLS: " + to_wstring(player1.maxWalls - player1.GetMazeWallCount())
                 + L" ");
             if (startPressed)
             {
-                WriteLine(mazeOffsetX, 2, L"                          ");
-                WriteLine(mazeOffsetX, 3, L"         ");
+                DrawString(mazeOffsetX, 2, L"                          ");
+                DrawString(mazeOffsetX, 3, L"         ");
             }
         }
         else if (gameState == 1)
@@ -300,26 +331,25 @@ public:
 
             if (!player1.PawnOnBoard())
             {
-                WriteLine(trackingOffsetX, 2, L"ENTER THE BOARD FROM THE LEFT");
-                WriteLine(trackingOffsetX, 3, L"USE W AND S TO SELECT A SQUARE");
+                DrawString(trackingOffsetX, 2, L"ENTER THE BOARD FROM THE LEFT");
+                DrawString(trackingOffsetX, 3, L"USE W AND S TO SELECT A SQUARE");
             }
             else
             {
-                WriteLine(trackingOffsetX, 2, L"LOOK FOR THE MAZE EXIT       ");
-                WriteLine(trackingOffsetX, 3, L"USE WASD TO SELECT A DIRECTION");
+                DrawString(trackingOffsetX, 2, L"LOOK FOR THE MAZE EXIT       ");
+                DrawString(trackingOffsetX, 3, L"USE WASD TO SELECT A DIRECTION");
             }
-            //DrawBox(trackingOffsetX, 2, trackingOffsetX + 7, 4, FG_BLACK);
         }
 
             // Buttons
         if (gameState == 0 && player1.GetMazeWallCount() == player1.maxWalls && !startPressed)
         {
             DrawBox(trackingOffsetX, 2, trackingOffsetX + 7, 4, FG_BLUE);
-            WriteLine(trackingOffsetX + 1, 3, L"START!");
+            DrawString(trackingOffsetX + 1, 3, L"START!");
         } else if (gameState == 0)
         {
             DrawBox(trackingOffsetX, 2, trackingOffsetX + 7, 4, FG_BLACK);
-            WriteLine(trackingOffsetX + 1, 3, L"      ");
+            DrawString(trackingOffsetX + 1, 3, L"      ");
         }
 
             // Boards
@@ -374,7 +404,7 @@ public:
                 }
 
                 // Tracking Grid
-                if (piece = player1.GetTrackingCell(j, i) > 0)
+                if ((piece = player1.GetTrackingCell(j, i)) > 0)
                 {
                     if (i % 2 != 0 && j % 2 != 0)
                     {
@@ -398,7 +428,6 @@ public:
 
             // Enter board indicator
             if (gameState == 1 && i == enterLocation && !player1.PawnOnBoard())
-                // the i is misleading, enterLocation is on the Y axis
             {
                 Draw(trackingOffsetX - 2, trackingOffsetY + i * UIScale, '>');
             }
@@ -411,6 +440,12 @@ public:
         {
             startPressed = false;
             gameState = 1;
+        }
+
+        if (turnOver)
+        {
+            turn = !turn;
+            turnOver = false;
         }
 
         return true;

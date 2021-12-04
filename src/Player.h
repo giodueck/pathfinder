@@ -1,5 +1,7 @@
 #pragma once
 
+#include <exception>
+
 enum Pieces
 {
     UNKNOWN = -1,   // for tracking grid
@@ -31,6 +33,7 @@ public:
     void SetMazeWall(int i, int j);
     void SetTrackingWall(int i, int j);
     void SetObjective(int i, int j);
+    //void SetTrackingObjective(int i, int j);
     void SetPawn(int i, int j);
     void SetVisited(int i, int j);
 
