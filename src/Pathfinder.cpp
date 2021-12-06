@@ -137,37 +137,37 @@ public:
         //player1.SetObjective(11, 11);
         //player1.SetPawn(3, 1);
         //player1.SetVisited(1, 1);
-        player2.SetMazeWall(2, 1);
-        player2.SetMazeWall(2, 3);
-        player2.SetMazeWall(2, 7);
-        player2.SetMazeWall(2, 9);
-        player2.SetMazeWall(3, 0);
+        player2.SetMazeWall(1, 2);
         player2.SetMazeWall(3, 2);
-        player2.SetMazeWall(3, 8);
-        player2.SetMazeWall(3, 10);
-        player2.SetMazeWall(4, 5);
-        player2.SetMazeWall(5, 2);
-        player2.SetMazeWall(5, 4);
-        player2.SetMazeWall(5, 8);
-        player2.SetMazeWall(5, 10);
-        player2.SetMazeWall(6, 1);
-        player2.SetMazeWall(6, 7);
-        player2.SetMazeWall(7, 0);
-        player2.SetMazeWall(7, 4);
-        player2.SetMazeWall(7, 6);
-        player2.SetMazeWall(7, 10);
-        player2.SetMazeWall(8, 5);
-        player2.SetMazeWall(8, 9);
-        player2.SetMazeWall(8, 11);
+        player2.SetMazeWall(7, 2);
         player2.SetMazeWall(9, 2);
-        player2.SetMazeWall(9, 8);
-        player2.SetMazeWall(10, 1);
+        player2.SetMazeWall(0, 3);
+        player2.SetMazeWall(2, 3);
+        player2.SetMazeWall(8, 3);
         player2.SetMazeWall(10, 3);
+        player2.SetMazeWall(5, 4);
+        player2.SetMazeWall(2, 5);
+        player2.SetMazeWall(4, 5);
+        player2.SetMazeWall(8, 5);
+        player2.SetMazeWall(10, 5);
+        player2.SetMazeWall(1, 6);
+        player2.SetMazeWall(7, 6);
+        player2.SetMazeWall(0, 7);
+        player2.SetMazeWall(4, 7);
+        player2.SetMazeWall(6, 7);
         player2.SetMazeWall(10, 7);
-        player2.SetMazeWall(11, 2);
-        player2.SetMazeWall(11, 4);
-        player2.SetMazeWall(11, 10);
-        player2.SetObjective(3, 9);
+        player2.SetMazeWall(5, 8);
+        player2.SetMazeWall(9, 8);
+        player2.SetMazeWall(11, 8);
+        player2.SetMazeWall(2, 9);
+        player2.SetMazeWall(8, 9);
+        player2.SetMazeWall(1, 10);
+        player2.SetMazeWall(3, 10);
+        player2.SetMazeWall(7, 10);
+        player2.SetMazeWall(2, 11);
+        player2.SetMazeWall(4, 11);
+        player2.SetMazeWall(10, 11);
+        player2.SetObjective(9, 3);
 
         player1.SetMazeWall(2, 1);
         player1.SetMazeWall(2, 3);
@@ -211,6 +211,7 @@ public:
         static int enterLocation = 1;
         static bool startPressed = false;
         static int direction = -1;
+        static bool retreat = false;
         static bool confirm = false;
         static int turn = 0;
         static bool turnOver = false;
@@ -271,6 +272,8 @@ public:
                     direction = LEFT;
                 if (m_keys['d'].bPressed || m_keys['D'].bPressed)
                     direction = RIGHT;
+                if (m_keys['r'].bPressed || m_keys['R'].bPressed)
+                    retreat = !retreat;
             }
 
             // Confirm
@@ -293,21 +296,30 @@ public:
             // Move
             else if (confirm)
             {
-                // Move, if not blocked turn continues
-                try
+                // Back off of the board
+                if (retreat)
                 {
-                    if (!player1.Move(player2, direction))
-                        turnOver = true;
+                    player1.Retreat(player2);
+                    retreat = false;
                 }
-                catch (exception e)
+                else
                 {
-                    DrawCString(trackingOffsetX, trackingOffsetY + UIScale * 13, e.what(), FG_RED);
-                    timedMessageLen = strlen(e.what());
-                    timeCtr = 0;
-                }
-                catch (...)
-                {
-                    exit(143);
+                    // Move, if not blocked turn continues
+                    try
+                    {
+                        if (!player1.Move(player2, direction))
+                            turnOver = true;
+                    }
+                    catch (exception e)
+                    {
+                        DrawCString(trackingOffsetX, trackingOffsetY + UIScale * 13, e.what(), FG_RED);
+                        timedMessageLen = strlen(e.what());
+                        timeCtr = 0;
+                    }
+                    catch (...)
+                    {
+                        exit(143);
+                    }
                 }
             }
 
@@ -346,6 +358,11 @@ public:
             {
                 DrawString(trackingOffsetX, 2, L"ENTER THE BOARD FROM THE LEFT");
                 DrawString(trackingOffsetX, 3, L"USE W AND S TO SELECT A SQUARE");
+            }
+            else if (retreat)
+            {
+                DrawString(trackingOffsetX, 2, L"DO YOU WISH TO RETREAT?      ");
+                DrawString(trackingOffsetX, 3, L"CANCEL WITH R OR CONFIRM      ");
             }
             else
             {

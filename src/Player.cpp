@@ -159,7 +159,7 @@ bool Player::Enter(Player& opponent, int j)
         throw std::exception("Enter: Already entered");
 }
 
-void Player::GetOpponentPawn(int& i_, int& j_)
+bool Player::GetOpponentPawn(int& i_, int& j_)
 {
     for (int i = 1; i < 13; i += 2)
     {
@@ -169,16 +169,17 @@ void Player::GetOpponentPawn(int& i_, int& j_)
             {
                 i_ = i;
                 j_ = j;
-                return;
+                return true;
             }
         }
     }
 
     i_ = 0;
     j_ = 0;
+    return false;
 }
 
-void Player::GetPawn(int& i_, int& j_)
+bool Player::GetPawn(int& i_, int& j_)
 {
     for (int i = 1; i < 13; i += 2)
     {
@@ -188,21 +189,21 @@ void Player::GetPawn(int& i_, int& j_)
             {
                 i_ = i;
                 j_ = j;
-                return;
+                return true;
             }
         }
     }
 
     i_ = 0;
     j_ = 0;
+    return false;
 }
 
 bool Player::MoveOpponent(int direction)
 {
     int i, j;
-    GetOpponentPawn(i, j);
 
-    if (i > 0 && j > 0)
+    if (GetOpponentPawn(i, j))
     {
         switch (direction)
         {
@@ -254,9 +255,8 @@ bool Player::MoveOpponent(int direction)
 bool Player::Move(Player& opponent, int direction)
 {
     int i, j;
-    GetPawn(i, j);
 
-    if (i > 0 && j > 0)
+    if (GetPawn(i, j))
     {
         switch (direction)
         {
@@ -331,22 +331,17 @@ bool Player::Move(Player& opponent, int direction)
 
 void Player::RetreatOpponent()
 {
-    for (int i = 0; i < 13; i++)
-    {
-        for (int j = 0; j < 13; j++)
-        {
-            if (mazeGrid[i][j] == PAWN)
-            {
-                mazeGrid[i][j] = BLANK;
-                break;
-            }
-        }
-    }
+    int i, j;
+    if (GetOpponentPawn(i, j))
+        mazeGrid[i][j] = VISITED;
     opponentOnBoard = false;
 }
 
 void Player::Retreat(Player& opponent)
 {
+    int i, j;
+    if (GetPawn(i, j))
+        trackingGrid[i][j] = VISITED;
     opponent.RetreatOpponent();
     onBoard = false;
 }

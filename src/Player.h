@@ -71,6 +71,6 @@ protected:
     int mazeWallCount, trackingWallCount;
     bool onBoard = false, opponentOnBoard = false;
 
-    void GetOpponentPawn(int& i, int& j);
-    void GetPawn(int& i, int& j);
+    bool GetOpponentPawn(int& i, int& j);
+    bool GetPawn(int& i, int& j);
 };
