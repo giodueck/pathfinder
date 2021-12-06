@@ -16,7 +16,7 @@ Player::Player()
 
 void Player::SetMazeWall(int i, int j)
 {
-    if (mazeWallCount < 30)
+    if (mazeGrid[i][j] != WALL && mazeWallCount < 30)
     {
         mazeGrid[i][j] = WALL;
         mazeWallCount++;
@@ -25,7 +25,7 @@ void Player::SetMazeWall(int i, int j)
 
 void Player::SetTrackingWall(int i, int j)
 {
-    if (trackingWallCount < 30)
+    if (trackingGrid[i][j] != WALL && trackingWallCount < 30)
     {
         trackingGrid[i][j] = WALL;
         trackingWallCount++;
@@ -112,23 +112,26 @@ void Player::ToggleWall(int i, int j)
 
 bool Player::EnterOpponent(int j)
 {
-    if (j % 2)
+    if (j % 2 && !opponentOnBoard)
     {
         if (mazeGrid[0][j] != WALL)
         {
             opponentOnBoard = true;
+            mazeGrid[1][j] = PAWN;
             return true;
         }
         else
             return false;
     }
+    else if (j % 2 == 0)
+        throw std::exception("EnterOpp: Invalid row, has to be uneven");
     else
-        throw std::exception("Invalid row, has to be uneven");
+        throw std::exception("EnterOpp: Already entered");
 }
 
-bool Player::Enter(Player opponent, int j)
+bool Player::Enter(Player& opponent, int j)
 {
-    if (j % 2)
+    if (j % 2 && !onBoard)
     {
         if (trackingGrid[0][j] != WALL)
         {
@@ -150,8 +153,10 @@ bool Player::Enter(Player opponent, int j)
             return false;
         }
     }
+    else if (j % 2 == 0)
+        throw std::exception("Enter: Invalid row, has to be uneven");
     else
-        throw std::exception("Invalid row, has to be uneven");
+        throw std::exception("Enter: Already entered");
 }
 
 void Player::GetOpponentPawn(int& i_, int& j_)
@@ -194,14 +199,14 @@ void Player::GetPawn(int& i_, int& j_)
 
 bool Player::MoveOpponent(int direction)
 {
-    if (opponentOnBoard)
-    {
-        int i, j;
-        GetOpponentPawn(i, j);
+    int i, j;
+    GetOpponentPawn(i, j);
 
+    if (i > 0 && j > 0)
+    {
         switch (direction)
         {
-        case UP:
+        case LEFT:
             if (mazeGrid[i - 1][j] == WALL)
                 return false;
             else if (i - 2 > 0)
@@ -210,8 +215,7 @@ bool Player::MoveOpponent(int direction)
                 mazeGrid[i][j] = VISITED;
             }
             return true;
-            break;
-        case DOWN:
+        case RIGHT:
             if (mazeGrid[i + 1][j] == WALL)
                 return false;
             else if (i + 2 < 13)
@@ -220,8 +224,7 @@ bool Player::MoveOpponent(int direction)
                 mazeGrid[i][j] = VISITED;
             }
             return true;
-            break;
-        case LEFT:
+        case UP:
             if (mazeGrid[i][j - 1] == WALL)
                 return false;
             else if (j - 2 > 0)
@@ -230,8 +233,7 @@ bool Player::MoveOpponent(int direction)
                 mazeGrid[i][j] = VISITED;
             }
             return true;
-            break;
-        case RIGHT:
+        case DOWN:
             if (mazeGrid[i][j + 1] == WALL)
                 return false;
             else if (j + 2 < 13)
@@ -240,26 +242,25 @@ bool Player::MoveOpponent(int direction)
                 mazeGrid[i][j] = VISITED;
             }
             return true;
-            break;
 
         default:
-            throw std::exception("Invalid direction");
+            throw std::exception("MoveOpp: Invalid direction");
         }
     }
     else
-        throw std::exception("Invalid action, pawn not on board");
+        throw std::exception("MoveOpp: Invalid action, pawn not on board");
 }
 
-bool Player::Move(Player opponent, int direction)
+bool Player::Move(Player& opponent, int direction)
 {
-    if (onBoard)
-    {
-        int i, j;
-        GetPawn(i, j);
+    int i, j;
+    GetPawn(i, j);
 
+    if (i > 0 && j > 0)
+    {
         switch (direction)
         {
-        case UP:
+        case LEFT:
             if (opponent.MoveOpponent(direction))
             {
                 if (i - 2 > 0)
@@ -274,8 +275,7 @@ bool Player::Move(Player opponent, int direction)
                 SetTrackingWall(i - 1, j);
                 return false;
             }
-            break;
-        case DOWN:
+        case RIGHT:
             if (opponent.MoveOpponent(direction))
             {
                 if (i + 2 < 13)
@@ -290,8 +290,7 @@ bool Player::Move(Player opponent, int direction)
                 SetTrackingWall(i + 1, j);
                 return false;
             }
-            break;
-        case LEFT:
+        case UP:
             if (opponent.MoveOpponent(direction))
             {
                 if (j - 2 > 0)
@@ -306,8 +305,7 @@ bool Player::Move(Player opponent, int direction)
                 SetTrackingWall(i, j - 1);
                 return false;
             }
-            break;
-        case RIGHT:
+        case DOWN:
             if (opponent.MoveOpponent(direction))
             {
                 if (j + 2 < 13)
@@ -322,14 +320,13 @@ bool Player::Move(Player opponent, int direction)
                 SetTrackingWall(i, j + 1);
                 return false;
             }
-            break;
 
         default:
-            throw std::exception("Invalid direction");
+            throw std::exception("Move: Invalid direction");
         }
     }
     else
-        throw std::exception("Invalid action, pawn not on board");
+        throw std::exception("Move: Invalid action, pawn not on board");
 }
 
 void Player::RetreatOpponent()
@@ -348,7 +345,7 @@ void Player::RetreatOpponent()
     opponentOnBoard = false;
 }
 
-void Player::Retreat(Player opponent)
+void Player::Retreat(Player& opponent)
 {
     opponent.RetreatOpponent();
     onBoard = false;

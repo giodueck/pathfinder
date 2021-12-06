@@ -55,15 +55,15 @@ public:
 
     bool EnterOpponent(int i);
 
-    bool Enter(Player opponent, int i);
+    bool Enter(Player& opponent, int i);
 
     bool MoveOpponent(int direction);
 
-    bool Move(Player opponent, int direction);
+    bool Move(Player& opponent, int direction);
 
     void RetreatOpponent();
 
-    void Retreat(Player opponent);
+    void Retreat(Player& opponent);
 
 protected:
     int mazeGrid[13][13];

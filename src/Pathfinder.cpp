@@ -214,6 +214,12 @@ public:
         static bool confirm = false;
         static int turn = 0;
         static bool turnOver = false;
+        static float timeCtr = 0;
+
+        // Timed messages
+        static int timedMessageLen = 0;
+        const float timedMessageTimeout = 5.0;
+        timeCtr += fElapsedTime;
 
         // INPUT
             // Setup
@@ -281,7 +287,8 @@ public:
             // Enter board
             if (!player1.PawnOnBoard() && confirm)
             {
-                player1.Enter(player2, enterLocation);
+                if (!player1.Enter(player2, enterLocation))
+                    turnOver = true;
             }
             // Move
             else if (confirm)
@@ -290,13 +297,13 @@ public:
                 try
                 {
                     if (!player1.Move(player2, direction))
-                    {
                         turnOver = true;
-                    }
                 }
                 catch (exception e)
                 {
                     DrawCString(trackingOffsetX, trackingOffsetY + UIScale * 13, e.what(), FG_RED);
+                    timedMessageLen = strlen(e.what());
+                    timeCtr = 0;
                 }
                 catch (...)
                 {
@@ -315,6 +322,12 @@ public:
         // DRAWING
 
             // Text
+        if (timedMessageLen && timeCtr > timedMessageTimeout)
+        {
+            DrawLine(trackingOffsetX, trackingOffsetY + UIScale * 13, trackingOffsetX + timedMessageLen, trackingOffsetY + UIScale * 13, ' ');
+            timedMessageLen = 0;
+        }
+
         if (gameState == 0)
         {
             DrawString(mazeOffsetX, 2, L"SET UP A MAZE IN THIS GRID");
