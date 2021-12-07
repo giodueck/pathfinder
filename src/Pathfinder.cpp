@@ -32,7 +32,7 @@ using namespace std;
     On the tracking grid, a second yellow pawn keeps track of the current position, red chips are placed where
     the players already been, and barriers when blocked.
 
-    If necessary, players can move back off the board and re-enter from another square on the left-most column.
+    If necessary, players can move back off of the board and re-enter from another square on the left-most column.
 
     First one to reach their opponents hidden pawn wins.
 */
@@ -216,6 +216,7 @@ public:
         static int turn = 0;
         static bool turnOver = false;
         static float timeCtr = 0;
+        static bool winner = false;
 
         // Timed messages
         static int timedMessageLen = 0;
@@ -465,6 +466,17 @@ public:
                 Draw(trackingOffsetX - 2, trackingOffsetY + i * UIScale, ' ');
         }
 
+        // GAME OVER MESSAGE
+        if (gameState == 2)
+        {
+            DrawBox(mazeOffsetX - 9, trackingOffsetY + UIScale * 13 / 2 - 1, mazeOffsetX + 6, trackingOffsetY + UIScale * 13 / 2 + 1, FG_GREEN);
+
+            if (winner)
+                DrawString(mazeOffsetX - 8, trackingOffsetY + UIScale * 13 / 2, L"PLAYER 1 WINS!");
+            else
+                DrawString(mazeOffsetX - 8, trackingOffsetY + UIScale * 13 / 2, L"PLAYER 2 WINS!");
+        }
+
         // STATE UPDATES
         if (startPressed)
         {
@@ -476,6 +488,13 @@ public:
         {
             turn = !turn;
             turnOver = false;
+        }
+
+            // gameover conditions
+        if (player1.OpponentWon() || player2.OpponentWon()) // player2 wins
+        {
+            winner = player2.OpponentWon();
+            gameState = 2;
         }
 
         return true;

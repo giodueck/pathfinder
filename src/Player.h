@@ -65,11 +65,14 @@ public:
 
     void Retreat(Player& opponent);
 
+    bool OpponentWon() { return opponentWon; }
+
 protected:
     int mazeGrid[13][13];
     int trackingGrid[13][13];
     int mazeWallCount, trackingWallCount;
     bool onBoard = false, opponentOnBoard = false;
+    bool opponentWon = false;
 
     bool GetOpponentPawn(int& i, int& j);
     bool GetPawn(int& i, int& j);

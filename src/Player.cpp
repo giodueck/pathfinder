@@ -117,6 +117,8 @@ bool Player::EnterOpponent(int j)
         if (mazeGrid[0][j] != WALL)
         {
             opponentOnBoard = true;
+            if (mazeGrid[1][j] == OBJECTIVE)
+                opponentWon = true;
             mazeGrid[1][j] = PAWN;
             return true;
         }
@@ -212,6 +214,8 @@ bool Player::MoveOpponent(int direction)
                 return false;
             else if (i - 2 > 0)
             {
+                if (mazeGrid[i - 2][j] == OBJECTIVE)
+                    opponentWon = true;
                 mazeGrid[i - 2][j] = PAWN;
                 mazeGrid[i][j] = VISITED;
             }
@@ -221,6 +225,8 @@ bool Player::MoveOpponent(int direction)
                 return false;
             else if (i + 2 < 13)
             {
+                if (mazeGrid[i + 2][j] == OBJECTIVE)
+                    opponentWon = true;
                 mazeGrid[i + 2][j] = PAWN;
                 mazeGrid[i][j] = VISITED;
             }
@@ -230,6 +236,8 @@ bool Player::MoveOpponent(int direction)
                 return false;
             else if (j - 2 > 0)
             {
+                if (mazeGrid[i][j - 2] == OBJECTIVE)
+                    opponentWon = true;
                 mazeGrid[i][j - 2] = PAWN;
                 mazeGrid[i][j] = VISITED;
             }
@@ -239,6 +247,8 @@ bool Player::MoveOpponent(int direction)
                 return false;
             else if (j + 2 < 13)
             {
+                if (mazeGrid[i][j + 2] == OBJECTIVE)
+                    opponentWon = true;
                 mazeGrid[i][j + 2] = PAWN;
                 mazeGrid[i][j] = VISITED;
             }
