@@ -1,8 +1,10 @@
 #include "olcConsoleGameEngine.h"
 #include "Player.h"
 #include "UnicodeCharacters.h"
+#include "AStar.h"
 
 #include <string>
+#include <ctime>
 
 using namespace std;
 
@@ -105,6 +107,28 @@ public:
         }
     }
 
+    void PlaceRandWalls(Player& player)
+    {
+        int i, j;
+        while (player.GetMazeWallCount() < player.maxWalls)
+        {
+            i = rand() % 6;
+            j = rand() % 6;
+            if (rand() % 2)
+                player.SetMazeWall(i * 2 + 1, j * 2);
+            else
+                player.SetMazeWall(i * 2, j * 2 + 1);
+        }
+    }
+
+    void PlaceRandObjective(Player& player)
+    {
+        int i, j;
+        i = rand() % 3;
+        j = rand() % 6;
+        player.SetObjective((i + 3) * 2 + 1, j * 2 + 1);
+    }
+
     virtual bool OnUserCreate()
     {
         m_sAppName = L"Pathfinder";
@@ -169,39 +193,43 @@ public:
         player2.SetMazeWall(10, 11);
         player2.SetObjective(9, 3);
 
-        player1.SetMazeWall(2, 1);
-        player1.SetMazeWall(2, 3);
-        player1.SetMazeWall(2, 7);
-        player1.SetMazeWall(2, 9);
-        player1.SetMazeWall(3, 0);
-        player1.SetMazeWall(3, 2);
-        player1.SetMazeWall(3, 8);
-        player1.SetMazeWall(3, 10);
-        player1.SetMazeWall(4, 5);
-        player1.SetMazeWall(5, 2);
-        player1.SetMazeWall(5, 4);
-        player1.SetMazeWall(5, 8);
-        player1.SetMazeWall(5, 10);
-        player1.SetMazeWall(6, 1);
-        player1.SetMazeWall(6, 7);
-        player1.SetMazeWall(7, 0);
-        player1.SetMazeWall(7, 4);
-        player1.SetMazeWall(7, 6);
-        player1.SetMazeWall(7, 10);
-        player1.SetMazeWall(8, 5);
-        player1.SetMazeWall(8, 9);
-        player1.SetMazeWall(8, 11);
-        player1.SetMazeWall(9, 2);
-        player1.SetMazeWall(9, 8);
-        player1.SetMazeWall(10, 1);
-        player1.SetMazeWall(10, 3);
-        player1.SetMazeWall(10, 7);
-        player1.SetMazeWall(11, 2);
-        player1.SetMazeWall(11, 4);
-        player1.SetMazeWall(11, 10);
-        player1.SetObjective(3, 9);
+        //player1.SetMazeWall(2, 1);
+        //player1.SetMazeWall(2, 3);
+        //player1.SetMazeWall(2, 7);
+        //player1.SetMazeWall(2, 9);
+        //player1.SetMazeWall(3, 0);
+        //player1.SetMazeWall(3, 2);
+        //player1.SetMazeWall(3, 8);
+        //player1.SetMazeWall(3, 10);
+        //player1.SetMazeWall(4, 5);
+        //player1.SetMazeWall(5, 2);
+        //player1.SetMazeWall(5, 4);
+        //player1.SetMazeWall(5, 8);
+        //player1.SetMazeWall(5, 10);
+        //player1.SetMazeWall(6, 1);
+        //player1.SetMazeWall(6, 7);
+        //player1.SetMazeWall(7, 0);
+        //player1.SetMazeWall(7, 4);
+        //player1.SetMazeWall(7, 6);
+        //player1.SetMazeWall(7, 10);
+        //player1.SetMazeWall(8, 5);
+        //player1.SetMazeWall(8, 9);
+        //player1.SetMazeWall(8, 11);
+        //player1.SetMazeWall(9, 2);
+        //player1.SetMazeWall(9, 8);
+        //player1.SetMazeWall(10, 1);
+        //player1.SetMazeWall(10, 3);
+        //player1.SetMazeWall(10, 7);
+        //player1.SetMazeWall(11, 2);
+        //player1.SetMazeWall(11, 4);
+        //player1.SetMazeWall(11, 10);
+        //player1.SetObjective(3, 9);
 
         //player1.SetTrackingObjective(5, 5);
+
+        srand(3);
+        PlaceRandWalls(player1);
+        PlaceRandObjective(player1);
 
         return true;
     }
@@ -217,10 +245,11 @@ public:
         static bool turnOver = false;
         static float timeCtr = 0;
         static bool winner = false;
+        static bool boardValid = false;
 
         // Timed messages
         static int timedMessageLen = 0;
-        const float timedMessageTimeout = 5.0;
+        const float timedMessageTimeout = 5.0f;
         timeCtr += fElapsedTime;
 
         // INPUT
@@ -231,7 +260,8 @@ public:
             if (player1.GetMazeWallCount() == player1.maxWalls &&
                 MouseInBox(trackingOffsetX, 2, trackingOffsetX + 7, 4))
             {
-                // TODO: Verify the maze is solvable
+                AStar as = AStar(player1);
+                boardValid = as.Pathfind();
                 startPressed = true;
             }
             else
@@ -346,10 +376,18 @@ public:
             DrawString(mazeOffsetX, 2, L"SET UP A MAZE IN THIS GRID");
             DrawString(mazeOffsetX, 3, L"WALLS: " + to_wstring(player1.maxWalls - player1.GetMazeWallCount())
                 + L" ");
-            if (startPressed)
+            if (startPressed && boardValid)
             {
                 DrawString(mazeOffsetX, 2, L"                          ");
                 DrawString(mazeOffsetX, 3, L"         ");
+            }
+            else if (startPressed)
+            {
+                const char* msg = "OBJECTIVE NOT REACHABLE";
+                DrawCString(trackingOffsetX, trackingOffsetY + UIScale * 13, msg, FG_RED);
+                timedMessageLen = strlen(msg);
+                timeCtr = 0;
+                startPressed = false;
             }
         }
         else if (gameState == 1)
@@ -410,7 +448,7 @@ public:
                     else if (i % 2 != j % 2 && piece == Pieces::WALL)
                     {
                         // Checks if the mouse is hovering over the wall
-                        if (gameState == 0 && MouseOnBorder(i, j))
+                        if (gameState == 0 && MouseOnBorder(j, i))
                             DrawWall(j, i, mazeOffsetX, mazeOffsetY, 0, FG_RED);
                         else
                             DrawWall(j, i, mazeOffsetX, mazeOffsetY);

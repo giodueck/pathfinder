@@ -139,11 +139,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\AStar.h" />
     <ClInclude Include="src\olcConsoleGameEngine.h" />
     <ClInclude Include="src\Player.h" />
     <ClInclude Include="src\UnicodeCharacters.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\AStar.cpp" />
     <ClCompile Include="src\Pathfinder.cpp" />
     <ClCompile Include="src\Player.cpp" />
   </ItemGroup>
