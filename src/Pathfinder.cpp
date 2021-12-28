@@ -145,91 +145,9 @@ public:
         DrawBox(trackingOffsetX - 1, trackingOffsetY - 1, trackingOffsetX - 1 + 13 * UIScale + 2 - UIScale, trackingOffsetY - 1 + 13 * UIScale + 2 - UIScale);
         DrawBox(mazeOffsetX - 1, mazeOffsetY - 1, mazeOffsetX - 1 + 13 * UIScale + 2 - UIScale, mazeOffsetY - 1 + 13 * UIScale + 2 - UIScale);
 
-        // For debugging/testing
-        //for (int i = 0; i < 13; i++)
-        //{
-        //    for (int j = 0; j < 13; j++)
-        //    {
-        //        if (i % 2 != j % 2 && (i % 3 == 1 || j % 4 == 3))
-        //            player1.SetMazeWall(i, j);
-        //    }
-        //}
-        //player1.SetTrackingWall(0, 1);
-        //player1.SetTrackingWall(1, 0);
-        //player1.SetTrackingWall(11, 12);
-        //player1.SetTrackingWall(12, 11);
-        //player1.SetObjective(11, 11);
-        //player1.SetPawn(3, 1);
-        //player1.SetVisited(1, 1);
-        //player2.SetMazeWall(1, 2);
-        //player2.SetMazeWall(3, 2);
-        //player2.SetMazeWall(7, 2);
-        //player2.SetMazeWall(9, 2);
-        //player2.SetMazeWall(0, 3);
-        //player2.SetMazeWall(2, 3);
-        //player2.SetMazeWall(8, 3);
-        //player2.SetMazeWall(10, 3);
-        //player2.SetMazeWall(5, 4);
-        //player2.SetMazeWall(2, 5);
-        //player2.SetMazeWall(4, 5);
-        //player2.SetMazeWall(8, 5);
-        //player2.SetMazeWall(10, 5);
-        //player2.SetMazeWall(1, 6);
-        //player2.SetMazeWall(7, 6);
-        //player2.SetMazeWall(0, 7);
-        //player2.SetMazeWall(4, 7);
-        //player2.SetMazeWall(6, 7);
-        //player2.SetMazeWall(10, 7);
-        //player2.SetMazeWall(5, 8);
-        //player2.SetMazeWall(9, 8);
-        //player2.SetMazeWall(11, 8);
-        //player2.SetMazeWall(2, 9);
-        //player2.SetMazeWall(8, 9);
-        //player2.SetMazeWall(1, 10);
-        //player2.SetMazeWall(3, 10);
-        //player2.SetMazeWall(7, 10);
-        //player2.SetMazeWall(2, 11);
-        //player2.SetMazeWall(4, 11);
-        //player2.SetMazeWall(10, 11);
-        //player2.SetObjective(9, 3);
-
-        //player1.SetMazeWall(2, 1);
-        //player1.SetMazeWall(2, 3);
-        //player1.SetMazeWall(2, 7);
-        //player1.SetMazeWall(2, 9);
-        //player1.SetMazeWall(3, 0);
-        //player1.SetMazeWall(3, 2);
-        //player1.SetMazeWall(3, 8);
-        //player1.SetMazeWall(3, 10);
-        //player1.SetMazeWall(4, 5);
-        //player1.SetMazeWall(5, 2);
-        //player1.SetMazeWall(5, 4);
-        //player1.SetMazeWall(5, 8);
-        //player1.SetMazeWall(5, 10);
-        //player1.SetMazeWall(6, 1);
-        //player1.SetMazeWall(6, 7);
-        //player1.SetMazeWall(7, 0);
-        //player1.SetMazeWall(7, 4);
-        //player1.SetMazeWall(7, 6);
-        //player1.SetMazeWall(7, 10);
-        //player1.SetMazeWall(8, 5);
-        //player1.SetMazeWall(8, 9);
-        //player1.SetMazeWall(8, 11);
-        //player1.SetMazeWall(9, 2);
-        //player1.SetMazeWall(9, 8);
-        //player1.SetMazeWall(10, 1);
-        //player1.SetMazeWall(10, 3);
-        //player1.SetMazeWall(10, 7);
-        //player1.SetMazeWall(11, 2);
-        //player1.SetMazeWall(11, 4);
-        //player1.SetMazeWall(11, 10);
-        //player1.SetObjective(3, 9);
-
-        //player1.SetTrackingObjective(5, 5);
-
-        srand(3);
-        PlaceRandWalls(player1);
-        PlaceRandObjective(player1);
+        //srand(3);
+        //PlaceRandWalls(player1);
+        //PlaceRandObjective(player1);
 
         return true;
     }
@@ -238,8 +156,8 @@ public:
     {
         static int enterLocation = 1;
         static bool startPressed = false;
-        static int directionP1 = -1;
-        static int directionP2 = -1;
+        static int directionP1 = RIGHT;
+        static int directionP2 = RIGHT;
         static bool retreat = false;
         static bool confirm = false;
         static int turn = 0;
@@ -247,7 +165,7 @@ public:
         static float excTimeCtr = 0;
         static bool winner = false;
         static bool boardValid = false;
-        static float delayP2 = 0;
+        static float delayP2 = 0.5f;
 
         // Timed messages
         static int timedMessageLen = 0;
@@ -357,7 +275,6 @@ public:
                     }
                 }
             }
-
         }
             // Player 2's turn (AI)
         else if (gameState == 1 && turn == 1)
@@ -384,20 +301,15 @@ public:
                 if (!player2.Enter(player1, enterLocations[ind]))
                     turnOver = true;
                 else
-                {
                     directionP2 = RIGHT;
-                    delayP2 = 0.5f;
-                }
+                delayP2 = 0.5f;
             }
             // Move
             else
             {
                 if (!player2.NavigateMaze(directionP2, player1))
                     turnOver = true;
-                else
-                {
-                    delayP2 = 0.5f;
-                }
+                delayP2 = 0.5f;
             }
         }
 
@@ -431,22 +343,34 @@ public:
         }
         else if (gameState == 1)
         {
-
-            if (!player1.PawnOnBoard())
+            if (turn == 0)
             {
-                DrawString(trackingOffsetX, 2, L"ENTER THE BOARD FROM THE LEFT");
-                DrawString(trackingOffsetX, 3, L"USE W AND S TO SELECT A SQUARE");
-            }
-            else if (retreat)
-            {
-                DrawString(trackingOffsetX, 2, L"DO YOU WISH TO RETREAT?      ");
-                DrawString(trackingOffsetX, 3, L"CANCEL WITH R OR CONFIRM      ");
+                if (!player1.PawnOnBoard())
+                {
+                    DrawString(trackingOffsetX, 2, L"ENTER THE BOARD FROM THE LEFT");
+                    DrawString(trackingOffsetX, 3, L"USE W AND S TO SELECT A SQUARE");
+                }
+                else if (retreat)
+                {
+                    DrawString(trackingOffsetX, 2, L"DO YOU WISH TO RETREAT?      ");
+                    DrawString(trackingOffsetX, 3, L"CANCEL WITH R OR CONFIRM      ");
+                }
+                else
+                {
+                    DrawString(trackingOffsetX, 2, L"LOOK FOR THE MAZE EXIT       ");
+                    DrawString(trackingOffsetX, 3, L"USE WASD TO SELECT A DIRECTION");
+                }
             }
             else
             {
-                DrawString(trackingOffsetX, 2, L"LOOK FOR THE MAZE EXIT       ");
-                DrawString(trackingOffsetX, 3, L"USE WASD TO SELECT A DIRECTION");
+                DrawString(trackingOffsetX, 2, L"PLAYER 2'S TURN              ");
+                DrawString(trackingOffsetX, 3, L"                              ");
             }
+        }
+        else if (gameState == 2)
+        {
+            DrawString(trackingOffsetX, 2, L"                             ");
+            DrawString(trackingOffsetX, 3, L"                              ");
         }
 
             // Buttons
