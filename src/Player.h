@@ -1,6 +1,8 @@
 #pragma once
 
 #include <exception>
+#include <cstdlib>
+#include <ctime>
 
 enum Pieces
 {
@@ -57,8 +59,10 @@ public:
 
     bool Enter(Player& opponent, int i);
 
+    // Returns true if the turn continues, false otherwise
     bool MoveOpponent(int direction);
 
+    // Returns true if the turn continues, false otherwise
     bool Move(Player& opponent, int direction);
 
     void RetreatOpponent();
@@ -66,6 +70,14 @@ public:
     void Retreat(Player& opponent);
 
     bool OpponentWon() { return opponentWon; }
+
+    void PlaceRandWalls();
+
+    void PlaceRandObjective();
+
+    // Performs Move() behind the scenes, true if turn continues, false otherwise
+    // Intended for AI use
+    bool NavigateMaze(int& facing, Player& opponent);
 
 protected:
     int mazeGrid[13][13];
@@ -76,4 +88,5 @@ protected:
 
     bool GetOpponentPawn(int& i, int& j);
     bool GetPawn(int& i, int& j);
+    bool PathAheadClear(int i, int j, int direction);
 };

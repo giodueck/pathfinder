@@ -360,3 +360,81 @@ bool Player::PawnOnBoard()
 {
     return onBoard;
 }
+
+void Player::PlaceRandWalls()
+{
+    srand(time(0));
+    int i, j;
+    while (GetMazeWallCount() < maxWalls)
+    {
+        i = rand() % 6;
+        j = rand() % 6;
+        if (rand() % 2)
+            SetMazeWall(i * 2 + 1, j * 2);
+        else
+            SetMazeWall(i * 2, j * 2 + 1);
+    }
+}
+
+void Player::PlaceRandObjective()
+{
+    srand(time(0));
+    int i, j;
+    i = rand() % 3;
+    j = rand() % 6;
+    SetObjective((i + 3) * 2 + 1, j * 2 + 1);
+}
+
+// Return true if the tile in the direction given exists and seems reachable
+bool Player::PathAheadClear(int i, int j, int direction)
+{
+    switch (direction)
+    {
+    case LEFT:
+        return (trackingGrid[i - 1][j] != WALL && i - 2 > 0);
+    case RIGHT:
+        return (trackingGrid[i + 1][j] != WALL && i + 2 < 13);
+    case DOWN:
+        return (trackingGrid[i][j + 1] != WALL && j + 2 < 13);
+    case UP:
+        return (trackingGrid[i][j - 1] != WALL && j - 2 > 0);
+    }
+    return false;
+}
+
+bool Player::NavigateMaze(int& facing, Player& opponent)
+{
+    static int entryLocation = -1;
+    static int i, j;
+    bool res;
+
+    GetPawn(i, j);
+
+    // Entry
+    if (entryLocation == -1)
+        entryLocation = j;
+    else if (i == 1 && j == entryLocation)
+    {
+        // Back at starting place, time to retreat and try another entry point
+        Retreat(opponent);
+        entryLocation = -1;
+        return true;
+    }
+    
+    // Move
+    // Turn left, if no wall move, else turn right until no wall is found and move
+    facing = (facing + 1) % 4;
+    while (!PathAheadClear(i, j, facing))
+    {
+        facing = (facing + 3) % 4;
+    }
+        
+    res = Move(opponent, facing);
+    // If a new wall was found turn right once
+    if (!res)
+    {
+        facing = (facing + 3) % 4;
+    }
+
+    return res;
+}

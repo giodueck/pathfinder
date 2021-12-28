@@ -161,37 +161,37 @@ public:
         //player1.SetObjective(11, 11);
         //player1.SetPawn(3, 1);
         //player1.SetVisited(1, 1);
-        player2.SetMazeWall(1, 2);
-        player2.SetMazeWall(3, 2);
-        player2.SetMazeWall(7, 2);
-        player2.SetMazeWall(9, 2);
-        player2.SetMazeWall(0, 3);
-        player2.SetMazeWall(2, 3);
-        player2.SetMazeWall(8, 3);
-        player2.SetMazeWall(10, 3);
-        player2.SetMazeWall(5, 4);
-        player2.SetMazeWall(2, 5);
-        player2.SetMazeWall(4, 5);
-        player2.SetMazeWall(8, 5);
-        player2.SetMazeWall(10, 5);
-        player2.SetMazeWall(1, 6);
-        player2.SetMazeWall(7, 6);
-        player2.SetMazeWall(0, 7);
-        player2.SetMazeWall(4, 7);
-        player2.SetMazeWall(6, 7);
-        player2.SetMazeWall(10, 7);
-        player2.SetMazeWall(5, 8);
-        player2.SetMazeWall(9, 8);
-        player2.SetMazeWall(11, 8);
-        player2.SetMazeWall(2, 9);
-        player2.SetMazeWall(8, 9);
-        player2.SetMazeWall(1, 10);
-        player2.SetMazeWall(3, 10);
-        player2.SetMazeWall(7, 10);
-        player2.SetMazeWall(2, 11);
-        player2.SetMazeWall(4, 11);
-        player2.SetMazeWall(10, 11);
-        player2.SetObjective(9, 3);
+        //player2.SetMazeWall(1, 2);
+        //player2.SetMazeWall(3, 2);
+        //player2.SetMazeWall(7, 2);
+        //player2.SetMazeWall(9, 2);
+        //player2.SetMazeWall(0, 3);
+        //player2.SetMazeWall(2, 3);
+        //player2.SetMazeWall(8, 3);
+        //player2.SetMazeWall(10, 3);
+        //player2.SetMazeWall(5, 4);
+        //player2.SetMazeWall(2, 5);
+        //player2.SetMazeWall(4, 5);
+        //player2.SetMazeWall(8, 5);
+        //player2.SetMazeWall(10, 5);
+        //player2.SetMazeWall(1, 6);
+        //player2.SetMazeWall(7, 6);
+        //player2.SetMazeWall(0, 7);
+        //player2.SetMazeWall(4, 7);
+        //player2.SetMazeWall(6, 7);
+        //player2.SetMazeWall(10, 7);
+        //player2.SetMazeWall(5, 8);
+        //player2.SetMazeWall(9, 8);
+        //player2.SetMazeWall(11, 8);
+        //player2.SetMazeWall(2, 9);
+        //player2.SetMazeWall(8, 9);
+        //player2.SetMazeWall(1, 10);
+        //player2.SetMazeWall(3, 10);
+        //player2.SetMazeWall(7, 10);
+        //player2.SetMazeWall(2, 11);
+        //player2.SetMazeWall(4, 11);
+        //player2.SetMazeWall(10, 11);
+        //player2.SetObjective(9, 3);
 
         //player1.SetMazeWall(2, 1);
         //player1.SetMazeWall(2, 3);
@@ -238,19 +238,21 @@ public:
     {
         static int enterLocation = 1;
         static bool startPressed = false;
-        static int direction = -1;
+        static int directionP1 = -1;
+        static int directionP2 = -1;
         static bool retreat = false;
         static bool confirm = false;
         static int turn = 0;
         static bool turnOver = false;
-        static float timeCtr = 0;
+        static float excTimeCtr = 0;
         static bool winner = false;
         static bool boardValid = false;
+        static float delayP2 = 0;
 
         // Timed messages
         static int timedMessageLen = 0;
         const float timedMessageTimeout = 5.0f;
-        timeCtr += fElapsedTime;
+        excTimeCtr += fElapsedTime;
 
         // INPUT
             // Setup
@@ -288,21 +290,23 @@ public:
             // Direction
             if (!player1.PawnOnBoard())
             {
-                if ((m_keys['w'].bPressed || m_keys['W'].bPressed) && enterLocation > 1)
-                    enterLocation -= 2;
-                if ((m_keys['s'].bPressed || m_keys['S'].bPressed) && enterLocation < 11)
+                if ((m_keys['w'].bPressed || m_keys['W'].bPressed))
+                    enterLocation += 10;
+                if ((m_keys['s'].bPressed || m_keys['S'].bPressed))
                     enterLocation += 2;
+                // this will cause wrapping when pressing 'up' at the top or 'down' at the bottom
+                enterLocation = abs(enterLocation % 12);
             }
             else
             {
                 if (m_keys['w'].bPressed || m_keys['W'].bPressed)
-                    direction = UP;
+                    directionP1 = UP;
                 if (m_keys['s'].bPressed || m_keys['S'].bPressed)
-                    direction = DOWN;
+                    directionP1 = DOWN;
                 if (m_keys['a'].bPressed || m_keys['A'].bPressed)
-                    direction = LEFT;
+                    directionP1 = LEFT;
                 if (m_keys['d'].bPressed || m_keys['D'].bPressed)
-                    direction = RIGHT;
+                    directionP1 = RIGHT;
                 if (m_keys['r'].bPressed || m_keys['R'].bPressed)
                     retreat = !retreat;
             }
@@ -338,14 +342,14 @@ public:
                     // Move, if not blocked turn continues
                     try
                     {
-                        if (!player1.Move(player2, direction))
+                        if (!player1.Move(player2, directionP1))
                             turnOver = true;
                     }
                     catch (exception e)
                     {
                         DrawCString(trackingOffsetX, trackingOffsetY + UIScale * 13, e.what(), FG_RED);
                         timedMessageLen = strlen(e.what());
-                        timeCtr = 0;
+                        excTimeCtr = 0;
                     }
                     catch (...)
                     {
@@ -358,14 +362,49 @@ public:
             // Player 2's turn (AI)
         else if (gameState == 1 && turn == 1)
         {
-            // Skip turn
-            turnOver = true;
+            // turnOver = true;
+
+            int enterLocations[6] = { 1, 3, 5, 7, 9, 11 };
+            bool locationTried[6] = { false, false, false, false, false, false };
+            int ind;
+
+            // Small delay to keep player1 from seeing what the opponent does
+            if (delayP2 > 0)
+                delayP2 -= fElapsedTime;
+
+            // Enter board
+            else if (!player2.PawnOnBoard())
+            {
+                // Select entry point randomly
+                do
+                {
+                    ind = rand() % 6;
+                } while (locationTried[ind]);
+
+                if (!player2.Enter(player1, enterLocations[ind]))
+                    turnOver = true;
+                else
+                {
+                    directionP2 = RIGHT;
+                    delayP2 = 0.5f;
+                }
+            }
+            // Move
+            else
+            {
+                if (!player2.NavigateMaze(directionP2, player1))
+                    turnOver = true;
+                else
+                {
+                    delayP2 = 0.5f;
+                }
+            }
         }
 
         // DRAWING
 
             // Text
-        if (timedMessageLen && timeCtr > timedMessageTimeout)
+        if (timedMessageLen && excTimeCtr > timedMessageTimeout)
         {
             DrawLine(trackingOffsetX, trackingOffsetY + UIScale * 13, trackingOffsetX + timedMessageLen, trackingOffsetY + UIScale * 13, ' ');
             timedMessageLen = 0;
@@ -386,7 +425,7 @@ public:
                 const char* msg = "OBJECTIVE NOT REACHABLE";
                 DrawCString(trackingOffsetX, trackingOffsetY + UIScale * 13, msg, FG_RED);
                 timedMessageLen = strlen(msg);
-                timeCtr = 0;
+                excTimeCtr = 0;
                 startPressed = false;
             }
         }
@@ -520,16 +559,24 @@ public:
         {
             startPressed = false;
             gameState = 1;
+            bool res;
+            do 
+            {
+                player2.PlaceRandWalls();
+                player2.PlaceRandObjective();
+                AStar as = AStar(player2);
+                res = as.Pathfind();
+            } while (!res);
         }
 
         if (turnOver)
         {
-            turn = !turn;
+            turn = (turn + 1) % 2;
             turnOver = false;
         }
 
             // gameover conditions
-        if (player1.OpponentWon() || player2.OpponentWon()) // player2 wins
+        if (player1.OpponentWon() || player2.OpponentWon())
         {
             winner = player2.OpponentWon();
             gameState = 2;
