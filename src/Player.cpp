@@ -142,6 +142,7 @@ bool Player::Enter(Player& opponent, int j)
                 trackingGrid[0][j] = BLANK;
                 trackingGrid[1][j] = PAWN;
                 onBoard = true;
+                direction = RIGHT;
                 return true;
             }
             else
@@ -262,7 +263,7 @@ bool Player::MoveOpponent(int direction)
         throw std::exception("MoveOpp: Invalid action, pawn not on board");
 }
 
-bool Player::Move(Player& opponent, int direction)
+bool Player::Move(Player& opponent)
 {
     int i, j;
 
@@ -386,7 +387,7 @@ void Player::PlaceRandObjective()
 }
 
 // Return true if the tile in the direction given exists and seems reachable
-bool Player::PathAheadClear(int i, int j, int direction)
+bool Player::PathAheadClear(int i, int j)
 {
     switch (direction)
     {
@@ -402,7 +403,7 @@ bool Player::PathAheadClear(int i, int j, int direction)
     return false;
 }
 
-bool Player::NavigateMaze(int& facing, Player& opponent)
+bool Player::NavigateMaze(Player& opponent)
 {
     static int entryLocation = -1;
     static int i, j;
@@ -423,18 +424,23 @@ bool Player::NavigateMaze(int& facing, Player& opponent)
     
     // Move
     // Turn left, if no wall move, else turn right until no wall is found and move
-    facing = (facing + 1) % 4;
-    while (!PathAheadClear(i, j, facing))
+    direction = (direction + 1) % 4;
+    while (!PathAheadClear(i, j))
     {
-        facing = (facing + 3) % 4;
+        direction = (direction + 3) % 4;
     }
         
-    res = Move(opponent, facing);
+    res = Move(opponent);
     // If a new wall was found turn right once
     if (!res)
     {
-        facing = (facing + 3) % 4;
+        direction = (direction + 3) % 4;
     }
 
     return res;
+}
+
+void Player::SetDirection(int direction)
+{
+    this->direction = direction;
 }

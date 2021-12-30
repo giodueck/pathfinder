@@ -63,7 +63,7 @@ public:
     bool MoveOpponent(int direction);
 
     // Returns true if the turn continues, false otherwise
-    bool Move(Player& opponent, int direction);
+    bool Move(Player& opponent);
 
     void RetreatOpponent();
 
@@ -77,7 +77,9 @@ public:
 
     // Performs Move() behind the scenes, true if turn continues, false otherwise
     // Intended for AI use
-    bool NavigateMaze(int& facing, Player& opponent);
+    bool NavigateMaze(Player& opponent);
+
+    void SetDirection(int direction);
 
 protected:
     int mazeGrid[13][13];
@@ -85,8 +87,9 @@ protected:
     int mazeWallCount, trackingWallCount;
     bool onBoard = false, opponentOnBoard = false;
     bool opponentWon = false;
+    int direction = RIGHT;
 
     bool GetOpponentPawn(int& i, int& j);
     bool GetPawn(int& i, int& j);
-    bool PathAheadClear(int i, int j, int direction);
+    bool PathAheadClear(int i, int j);
 };

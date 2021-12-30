@@ -156,8 +156,6 @@ public:
     {
         static int enterLocation = 1;
         static bool startPressed = false;
-        static int directionP1 = RIGHT;
-        static int directionP2 = RIGHT;
         static bool retreat = false;
         static bool confirm = false;
         static int turn = 0;
@@ -218,13 +216,13 @@ public:
             else
             {
                 if (m_keys['w'].bPressed || m_keys['W'].bPressed)
-                    directionP1 = UP;
+                    player1.SetDirection(UP);
                 if (m_keys['s'].bPressed || m_keys['S'].bPressed)
-                    directionP1 = DOWN;
+                    player1.SetDirection(DOWN);
                 if (m_keys['a'].bPressed || m_keys['A'].bPressed)
-                    directionP1 = LEFT;
+                    player1.SetDirection(LEFT);
                 if (m_keys['d'].bPressed || m_keys['D'].bPressed)
-                    directionP1 = RIGHT;
+                    player1.SetDirection(RIGHT);
                 if (m_keys['r'].bPressed || m_keys['R'].bPressed)
                     retreat = !retreat;
             }
@@ -260,7 +258,7 @@ public:
                     // Move, if not blocked turn continues
                     try
                     {
-                        if (!player1.Move(player2, directionP1))
+                        if (!player1.Move(player2))
                             turnOver = true;
                     }
                     catch (exception e)
@@ -300,14 +298,12 @@ public:
 
                 if (!player2.Enter(player1, enterLocations[ind]))
                     turnOver = true;
-                else
-                    directionP2 = RIGHT;
                 delayP2 = 0.5f;
             }
             // Move
             else
             {
-                if (!player2.NavigateMaze(directionP2, player1))
+                if (!player2.NavigateMaze(player1))
                     turnOver = true;
                 delayP2 = 0.5f;
             }
