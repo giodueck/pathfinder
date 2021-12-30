@@ -152,27 +152,10 @@ public:
         return true;
     }
 
-    virtual bool OnUserUpdate(float fElapsedTime)
+    // Handles inputs and updates game state variables
+    void Input()
     {
-        static int enterLocation = 1;
-        static bool startPressed = false;
-        static bool retreat = false;
-        static bool confirm = false;
-        static int turn = 0;
-        static bool turnOver = false;
-        static float excTimeCtr = 0;
-        static bool winner = false;
-        static bool boardValid = false;
-        static float delayP2 = 0.5f;
-
-        // Timed messages
-        static int timedMessageLen = 0;
-        const float timedMessageTimeout = 5.0f;
-        excTimeCtr += fElapsedTime;
-
-        // INPUT
-            // Setup
-        if (gameState == 0 && m_mouse[0].bPressed)
+        if (gameState == SETUP && m_mouse[0].bPressed)
         {
             // check if clicked on the "start!" button
             if (player1.GetMazeWallCount() == player1.maxWalls &&
@@ -201,7 +184,8 @@ public:
                 }
             }
         }
-        else if (gameState == 1)
+        // During gameplay
+        else if (gameState == PLAYING)
         {
             // Direction
             if (!player1.PawnOnBoard())
@@ -233,10 +217,14 @@ public:
             else
                 confirm = false;
         }
+    }
 
-        // LOGIC
-            // Player 1's turn
-        if (gameState == 1 && turn == 0)
+    // Processes inputs and updates boards. Also executes player2 movement
+    // TODO: make player2 movement independent of logic if it is AI
+    void Logic(float fElapsedTime)
+    {
+        // Player 1's turn
+        if (gameState == PLAYING && turn == 0)
         {
             // Enter board
             if (!player1.PawnOnBoard() && confirm)
@@ -274,8 +262,8 @@ public:
                 }
             }
         }
-            // Player 2's turn (AI)
-        else if (gameState == 1 && turn == 1)
+        // Player 2's turn (AI)
+        else if (gameState == PLAYING && turn == 1)
         {
             // turnOver = true;
 
@@ -308,17 +296,18 @@ public:
                 delayP2 = 0.5f;
             }
         }
+    }
 
-        // DRAWING
-
-            // Text
+    // Displays text messages, both for error messages and hints
+    void DrawMessages()
+    {
         if (timedMessageLen && excTimeCtr > timedMessageTimeout)
         {
             DrawLine(trackingOffsetX, trackingOffsetY + UIScale * 13, trackingOffsetX + timedMessageLen, trackingOffsetY + UIScale * 13, ' ');
             timedMessageLen = 0;
         }
 
-        if (gameState == 0)
+        if (gameState == SETUP)
         {
             DrawString(mazeOffsetX, 2, L"SET UP A MAZE IN THIS GRID");
             DrawString(mazeOffsetX, 3, L"WALLS: " + to_wstring(player1.maxWalls - player1.GetMazeWallCount())
@@ -337,7 +326,7 @@ public:
                 startPressed = false;
             }
         }
-        else if (gameState == 1)
+        else if (gameState == PLAYING)
         {
             if (turn == 0)
             {
@@ -363,24 +352,33 @@ public:
                 DrawString(trackingOffsetX, 3, L"                              ");
             }
         }
-        else if (gameState == 2)
+        else if (gameState == OVER)
         {
             DrawString(trackingOffsetX, 2, L"                             ");
             DrawString(trackingOffsetX, 3, L"                              ");
         }
+    }
 
-            // Buttons
-        if (gameState == 0 && player1.GetMazeWallCount() == player1.maxWalls && !startPressed)
+    // Draws buttons
+    // TODO: Button class with options like borders, highlighting when moused over, etc.
+    void DrawButtons()
+    {
+        if (gameState == SETUP && player1.GetMazeWallCount() == player1.maxWalls && !startPressed)
         {
             DrawBox(trackingOffsetX, 2, trackingOffsetX + 7, 4, FG_BLUE);
             DrawString(trackingOffsetX + 1, 3, L"START!");
-        } else if (gameState == 0)
+        }
+        else if (gameState == SETUP)
         {
             DrawBox(trackingOffsetX, 2, trackingOffsetX + 7, 4, FG_BLACK);
             DrawString(trackingOffsetX + 1, 3, L"      ");
         }
+    }
 
-            // Boards
+    // Draws player1's boards
+    // TODO: make 2-player-gameplay possible. Maybe only print tracking boards
+    void DrawBoards()
+    {
         int piece;
         for (int i = 0; i < 13; i++)
         {
@@ -407,7 +405,7 @@ public:
                     else if (i % 2 != j % 2 && piece == Pieces::WALL)
                     {
                         // Checks if the mouse is hovering over the wall
-                        if (gameState == 0 && MouseOnBorder(j, i))
+                        if (gameState == SETUP && MouseOnBorder(j, i))
                             DrawWall(j, i, mazeOffsetX, mazeOffsetY, 0, FG_RED);
                         else
                             DrawWall(j, i, mazeOffsetX, mazeOffsetY);
@@ -417,7 +415,7 @@ public:
                 else if (i % 2 != j % 2)
                 {
                     // Checks if the mouse is hovering over the border
-                    if (gameState == 0 && MouseOnBorder(j, i) && player1.GetMazeWallCount() < player1.maxWalls)
+                    if (gameState == SETUP && MouseOnBorder(j, i) && player1.GetMazeWallCount() < player1.maxWalls)
                         DrawWall(j, i, mazeOffsetX, mazeOffsetY, PIXEL_QUARTER);
                     else
                         DrawWall(j, i, mazeOffsetX, mazeOffsetY, ' ');
@@ -425,7 +423,7 @@ public:
                 // Setup square highlighting for objective placement
                 else if (i % 2 && j % 2)
                 {
-                    if (gameState == 0 && MouseOnSquare(j, i, mazeOffsetX, mazeOffsetY))
+                    if (gameState == SETUP && MouseOnSquare(j, i, mazeOffsetX, mazeOffsetY))
                         Draw(mazeOffsetX + j * UIScale, mazeOffsetY + i * UIScale, PIXEL_QUARTER, FG_GREEN);
                     else
                         Draw(mazeOffsetX + j * UIScale, mazeOffsetY + i * UIScale, ' ');
@@ -455,16 +453,20 @@ public:
             }
 
             // Enter board indicator
-            if (gameState == 1 && i == enterLocation && !player1.PawnOnBoard())
+            if (gameState == PLAYING && i == enterLocation && !player1.PawnOnBoard())
             {
                 Draw(trackingOffsetX - 2, trackingOffsetY + i * UIScale, '>');
             }
             else
                 Draw(trackingOffsetX - 2, trackingOffsetY + i * UIScale, ' ');
         }
+    }
 
+    // Draws messages and buttons that are intended to go on top of everything else
+    void DrawSplash()
+    {
         // GAME OVER MESSAGE
-        if (gameState == 2)
+        if (gameState == OVER)
         {
             DrawBox(mazeOffsetX - 9, trackingOffsetY + UIScale * 13 / 2 - 1, mazeOffsetX + 6, trackingOffsetY + UIScale * 13 / 2 + 1, FG_GREEN);
 
@@ -473,12 +475,38 @@ public:
             else
                 DrawString(mazeOffsetX - 8, trackingOffsetY + UIScale * 13 / 2, L"PLAYER 2 WINS!");
         }
+    }
+
+    virtual bool OnUserUpdate(float fElapsedTime)
+    {
+        // Timed messages & exceptions
+        excTimeCtr += fElapsedTime;
+
+        // INPUT
+        Input();
+
+        // LOGIC
+        Logic(fElapsedTime);
+
+        // DRAWING
+
+            // Text
+        DrawMessages();
+
+            // Buttons
+        DrawButtons();
+
+            // Boards
+        DrawBoards();
+
+            // Splash messages and buttons go on top of everything else
+        DrawSplash();
 
         // STATE UPDATES
-        if (startPressed)
+        if (startPressed && gameState == SETUP)
         {
             startPressed = false;
-            gameState = 1;
+            gameState = PLAYING;
             bool res;
             do 
             {
@@ -496,10 +524,10 @@ public:
         }
 
             // gameover conditions
-        if (player1.OpponentWon() || player2.OpponentWon())
+        if (gameState == PLAYING && (player1.OpponentWon() || player2.OpponentWon()))
         {
             winner = player2.OpponentWon();
-            gameState = 2;
+            gameState = OVER;
         }
 
         return true;
@@ -507,8 +535,34 @@ public:
 
 private:
     Player player1, player2;
-    int gameState;
 
+    // Game state
+    int gameState = SETUP;
+    bool startPressed = false;
+    bool retreat = false;
+    bool confirm = false;
+    int turn = 0;
+    bool turnOver = false;
+    bool winner = false;
+
+    enum GameStates
+    {
+        SETUP = 0,
+        PLAYING = 1,
+        OVER = 2
+    };
+
+    // Gameplay
+    bool boardValid = false;
+    float delayP2 = 0.5f;
+    int enterLocation = 1;
+
+    // Timed messages & exceptions
+    float excTimeCtr = 0;
+    int timedMessageLen = 0;
+    const float timedMessageTimeout = 5.0f;
+
+    // Drawing
     const int UIScale = 2;
     int trackingOffsetX, trackingOffsetY;
     int mazeOffsetX, mazeOffsetY;
