@@ -42,6 +42,7 @@ using namespace std;
 class Pathfinder : public olcConsoleGameEngine
 {
 public:
+    // Draws a box using box-drawing characters found in the Unicode charset
     void DrawBox(int x1, int y1, int x2, int y2, short col = FG_WHITE)
     {
         DrawLine(x1 + 1, y1, x2 - 1, y1, HORIZONTAL_L, col);
@@ -54,6 +55,7 @@ public:
         Draw(x2, y2, CORNER_L_UP_LEFT, col);
     }
 
+    // Used by DrawBoards to draw the walls of the mazes
     void DrawWall(int i, int j, int offsetX, int offsetY, short c = 0, short col = FG_DARK_YELLOW)
     {
         // Vertical
@@ -70,6 +72,7 @@ public:
         }
     }
 
+    // Returns true if the mouse is positioned over a possible wall position, used by DrawBorders
     bool MouseOnBorder(int i, int j)
     {
         int mouseX = GetMouseX(), mouseY = GetMouseY();
@@ -84,6 +87,7 @@ public:
             );
     }
 
+    // Returns true if the mouse is positioned over a square on the grid, used by DrawBorders
     bool MouseOnSquare(int i, int j, int offsetX, int offsetY)
     {
         int mouseX = GetMouseX(), mouseY = GetMouseY();
@@ -93,12 +97,14 @@ public:
             mouseY >= offsetY + j * UIScale - UIScale / 2 && mouseY <= offsetY + j * UIScale + UIScale / 2);
     }
 
+    // Returns true if the mouse is positioned inside the bounds of the given box
     bool MouseInBox(int x1, int y1, int x2, int y2)
     {
         int mouseX = GetMouseX(), mouseY = GetMouseY();
         return (mouseX >= x1 && mouseX <= x2 && mouseY >= y1 && mouseY <= y2);
     }
 
+    // Draws a C-style string similarly to DrawString
     void DrawCString(int x, int y, const char* c, short col = 0x000F)
     {
         for (size_t i = 0; c[i] != '\0'; i++)
@@ -107,6 +113,8 @@ public:
         }
     }
 
+    // Used by AI to create the maze
+    // TODO: create button to randomize player boards too
     void PlaceRandWalls(Player& player)
     {
         int i, j;
@@ -121,6 +129,8 @@ public:
         }
     }
 
+    // Used by the AI to set the objective
+    // TODO: create button to randomize player boards too
     void PlaceRandObjective(Player& player)
     {
         int i, j;
